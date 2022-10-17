@@ -28,7 +28,7 @@ jobs:
       run: |
         python${{ env.PYTHON_VERSION }} -m venv .venv
         source .venv/bin/activate
-        make install-ci
+        make install
 
   lint:
     runs-on: ubuntu-latest
@@ -45,7 +45,7 @@ jobs:
       run: |
         source .venv/bin/activate
         sudo apt-get install --yes poppler-utils
-        make install-dev
+        make install
         make check
         make check-notebooks
 

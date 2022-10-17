@@ -1,4 +1,4 @@
-black
+black==21.4b2
 flake8
 jupyter
 mypy

@@ -109,7 +109,7 @@ test:
 
 .PHONY: check-coverage
 check-coverage:
-	coverage report --fail-under=95
+	coverage report --fail-under=90
 
 ## test-integration:            runs integration tests
 .PHONY: test-integration

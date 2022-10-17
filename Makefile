@@ -27,6 +27,7 @@ install-base-pip-packages:
 
 .PHONY: install-detectron2
 install-detectron2:
+	pip install torch
 	pip install "detectron2@git+https://github.com/facebookresearch/detectron2.git@v0.6#egg=detectron2"
 
 .PHONY: install-test

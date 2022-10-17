@@ -142,3 +142,14 @@ check-tests:
 tidy:
 	black --line-length 100 ${PACKAGE_NAME}
 	black --line-length 100 test_${PIPELINE_PACKAGE}
+
+## check-scripts:               run shellcheck
+.PHONY: check-scripts
+check-scripts:
+    # Fail if any of these files have warnings
+	scripts/shellcheck.sh
+
+## check-notebooks:             check that executing and cleaning notebooks doesn't produce changes
+.PHONY: check-notebooks
+check-notebooks:
+	scripts/check-and-format-notebooks.py --check

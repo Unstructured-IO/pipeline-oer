@@ -9,8 +9,6 @@
 
 This repo implements a document pre-processing pipeline for Army Officer Evaluation Reports (OERs).
 The pipeline assumes the OERs are in PDF format and include both pages.
-Currently, the pipeline
-covers extracting narrative text from a user-specified section in 10-K, 10-Q, and S-1 filings.
 The API is hosted at `https://api.unstructured.io`.
 
 ## Getting Started

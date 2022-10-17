@@ -14,7 +14,9 @@ The API is hosted at `https://api.unstructured.io`.
 ## Getting Started
 
 To view the most common `Makefile` targets, run `make`. The `Makefile` targets include several
-options for installing and/or running the pipeline.
+options for installing and/or running the pipeline. The PDF parsing capabilities rely on the
+`poppler` package. Before installing the package, run `brew install poppler` on a Mac or
+`sudo apt-get install poppler-utils` on Debian to install the `poppler` dependencies.
 
 To install all of the dependencies for the pipeline, run `make install`. The pipeline is intended
 to be run from the base directory of this repo. If you want to run the pipeline from another

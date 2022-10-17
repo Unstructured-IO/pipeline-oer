@@ -13,7 +13,11 @@ argon2-cffi==21.3.0
 argon2-cffi-bindings==21.2.0
     # via argon2-cffi
 asttokens==2.0.8
-    # via stack-data
+    # via
+    #   nbdev
+    #   stack-data
+astunparse==1.6.3
+    # via nbdev
 attrs==22.1.0
     # via jsonschema
 backcall==0.2.0
@@ -40,12 +44,21 @@ defusedxml==0.7.1
     # via nbconvert
 entrypoints==0.4
     # via jupyter-client
+execnb==0.1.4
+    # via nbdev
 executing==1.0.0
     # via stack-data
+fastcore==1.5.27
+    # via
+    #   execnb
+    #   ghapi
+    #   nbdev
 fastjsonschema==2.16.2
     # via nbformat
 flake8==5.0.4
     # via -r requirements/dev.in
+ghapi==1.0.3
+    # via nbdev
 importlib-metadata==5.0.0
     # via nbconvert
 ipykernel==6.15.3
@@ -58,6 +71,7 @@ ipykernel==6.15.3
 ipython==8.1.1
     # via
     #   -r requirements/dev.in
+    #   execnb
     #   ipykernel
     #   ipywidgets
     #   jupyter-console
@@ -123,6 +137,8 @@ nbconvert==7.0.0
     # via
     #   jupyter
     #   notebook
+nbdev==2.3.7
+    # via -r requirements/dev.in
 nbformat==5.6.0
     # via
     #   nbclient
@@ -139,6 +155,8 @@ notebook==6.4.12
 packaging==21.3
     # via
     #   build
+    #   fastcore
+    #   ghapi
     #   ipykernel
     #   nbconvert
     #   qtpy
@@ -190,6 +208,8 @@ pyrsistent==0.18.1
     # via jsonschema
 python-dateutil==2.8.2
     # via jupyter-client
+pyyaml==6.0
+    # via nbdev
 pyzmq==24.0.1
     # via
     #   ipykernel
@@ -205,6 +225,7 @@ send2trash==1.8.0
 six==1.16.0
     # via
     #   asttokens
+    #   astunparse
     #   bleach
     #   python-dateutil
 soupsieve==2.3.2.post1
@@ -244,6 +265,8 @@ typing-extensions==4.3.0
     # via
     #   black
     #   mypy
+watchdog==2.1.9
+    # via nbdev
 wcwidth==0.2.5
     # via prompt-toolkit
 webencodings==0.5.1
@@ -251,7 +274,9 @@ webencodings==0.5.1
     #   bleach
     #   tinycss2
 wheel==0.37.1
-    # via pip-tools
+    # via
+    #   astunparse
+    #   pip-tools
 widgetsnbextension==4.0.3
     # via ipywidgets
 zipp==3.9.0

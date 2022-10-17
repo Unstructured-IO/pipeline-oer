@@ -31,7 +31,6 @@ jobs:
         python${{ env.PYTHON_VERSION }} -m venv .venv
         source .venv/bin/activate
         make install-ci
-        make dl-test-artifacts
     - uses: actions/cache@v3
       id: nltk-cache
       with:

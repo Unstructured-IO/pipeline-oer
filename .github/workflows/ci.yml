@@ -44,6 +44,7 @@ jobs:
     - name: Lint
       run: |
         source .venv/bin/activate
+        apt-get install -y python-poppler
         make install-dev
         make check
         make check-notebooks
@@ -69,6 +70,7 @@ jobs:
     - name: Run core tests
       run: |
         source .venv/bin/activate
+        apt-get install -y python-poppler
         make test
         make check-coverage
 

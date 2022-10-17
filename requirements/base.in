@@ -1,0 +1,5 @@
+unstructured[pdf]==0.2.0
+unstructured_api_tools==0.2.0
+
+ratelimit
+requests

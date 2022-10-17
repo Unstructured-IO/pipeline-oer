@@ -127,3 +127,21 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# VSCode
+.vscode/
+
+# Mac
+.DS_Store
+
+# Example forms
+sample-sec-docs/
+
+nbs/
+
+# Celery files that are created when the mercury dashboard is run
+celery.sqlite
+celerybeat-schedule.db
+
+# temporarily generated files by project-specific Makefile
+tmp*

@@ -134,9 +134,6 @@ dmypy.json
 # Mac
 .DS_Store
 
-# Example forms
-sample-sec-docs/
-
 nbs/
 
 # Celery files that are created when the mercury dashboard is run

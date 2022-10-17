@@ -1,4 +1,4 @@
-black>=22.3.0
+black
 # NOTE(mrobinson) - Pinning click due to a unicode issue in black
 # can remove after black drops support for Python 3.6
 # ref: https://github.com/psf/black/issues/2964

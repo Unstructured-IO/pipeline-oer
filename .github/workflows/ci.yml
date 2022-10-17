@@ -47,7 +47,6 @@ jobs:
         sudo apt-get install --yes poppler-utils
         make install
         make check
-        make check-notebooks
 
   shellcheck:
     runs-on: ubuntu-latest

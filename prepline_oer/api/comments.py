@@ -19,10 +19,9 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 RATE_LIMIT = os.environ.get("PIPELINE_API_RATE_LIMIT", "1/second")
 
+# pipeline-api
 import tempfile
 from unstructured.documents.pdf import PDFPage, PDFDocument
-
-
 import warnings
 
 

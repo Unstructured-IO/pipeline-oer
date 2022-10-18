@@ -45,6 +45,7 @@ jobs:
         pip freeze
         make check
         make check-notebooks
+        diff nb.json modified-nb.json
 
   shellcheck:
     runs-on: ubuntu-latest

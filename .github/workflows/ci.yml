@@ -42,6 +42,7 @@ jobs:
       run: |
         source .venv/bin/activate
         sudo apt-get install --yes poppler-utils
+        ipython notebook --quiet
         make check
         make check-notebooks
 

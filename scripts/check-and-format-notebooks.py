@@ -92,7 +92,9 @@ if __name__ == "__main__":
         modified_nb = deepcopy(nb)
         process_nb(modified_nb, root_path)
         clean.clean_nb(modified_nb, allowed_cell_metadata_keys=["tags"])
-        modified_nb.clear()
+
+        for cell in modified_nb["cells"]:
+            cell["output"] = []
 
         if nb != modified_nb:
             nonmatching_nbs.append(str(fn))

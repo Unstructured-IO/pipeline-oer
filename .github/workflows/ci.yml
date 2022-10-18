@@ -32,14 +32,18 @@ jobs:
     needs: setup
     steps:
     - uses: actions/checkout@v3
+    - uses: actions/cache@v3
+      id: virtualenv-cache
+      with:
+        path: |
+          .venv
+        key: ci-venv-oer-${{ hashFiles('requirements/*.txt') }}
     - name: Lint
       run: |
-        python${{ env.PYTHON_VERSION }} -m venv .venv
         source .venv/bin/activate
         sudo apt-get install --yes poppler-utils
         make install
         make check
-        make check-notebooks
 
   shellcheck:
     runs-on: ubuntu-latest

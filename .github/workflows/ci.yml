@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ main, robinson/fix-notebook-check ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 

@@ -94,9 +94,6 @@ if __name__ == "__main__":
         clean.clean_nb(modified_nb, allowed_cell_metadata_keys=["tags"])
         modified_nb.clear()
 
-        with open("modified-nb.json", "w") as f:
-            json.dump(modified_nb.dict(), f, indent=4)
-
         if nb != modified_nb:
             nonmatching_nbs.append(str(fn))
         if not check:

@@ -149,3 +149,8 @@ check-scripts:
 .PHONY: check-notebooks
 check-notebooks:
 	scripts/check-and-format-notebooks.py --check
+
+## tidy-notebooks:	             execute notebooks and remove metadata
+.PHONY: tidy-notebooks
+tidy-notebooks:
+	scripts/check-and-format-notebooks.py

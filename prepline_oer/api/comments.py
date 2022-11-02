@@ -34,9 +34,6 @@ def partition_oer(filename: str, hide_tables: bool = True):
         },
         data={"hide_tables": hide_tables},
     )
-    if response.status_code != 200:
-        raise RuntimeError(f"HTTP Error {response.status_code}: {response.reason}.")
-
     # NOTE(yuming): return the result from post request as a dictionary
     partition_result = json.loads(response.content.decode("utf-8"))
     return partition_result

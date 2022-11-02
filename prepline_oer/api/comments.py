@@ -27,7 +27,7 @@ import json
 
 def partition_oer(filename: str, include_elems=["Text", "Title"]):
     response = requests.post(
-        "http://127.0.0.1:8000/layout/pdf",
+        "https://dev.ml.unstructured.io/layout/pdf",
         files={
             "file": (filename, open(filename, "rb")),
         },

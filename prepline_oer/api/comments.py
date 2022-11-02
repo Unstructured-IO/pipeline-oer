@@ -22,17 +22,16 @@ RATE_LIMIT = os.environ.get("PIPELINE_API_RATE_LIMIT", "1/second")
 # pipeline-api
 import tempfile
 import requests
-import warnings
 import json
 
 
-def partition_oer(filename: str, hide_tables: bool = True):
+def partition_oer(filename: str, include_elems=["Text", "Title"]):
     response = requests.post(
         "http://127.0.0.1:8000/layout/pdf",
         files={
             "file": (filename, open(filename, "rb")),
         },
-        data={"hide_tables": hide_tables},
+        data={"include_elems": include_elems},
     )
     # NOTE(yuming): return the result from post request as a dictionary
     partition_result = json.loads(response.content.decode("utf-8"))

@@ -21,21 +21,25 @@ RATE_LIMIT = os.environ.get("PIPELINE_API_RATE_LIMIT", "1/second")
 
 # pipeline-api
 import tempfile
-from unstructured.documents.pdf import PDFPage, PDFDocument
+import requests
 import warnings
+import json
 
 
-def partition_oer(filename: str):
-    doc = PDFDocument(filename)
+def partition_oer(filename: str, hide_tables: bool = True):
+    response = requests.post(
+        "http://127.0.0.1:8000/layout/pdf",
+        files={
+            "file": (filename, open(filename, "rb")),
+        },
+        data={"hide_tables": hide_tables},
+    )
+    if response.status_code != 200:
+        raise RuntimeError(f"HTTP Error {response.status_code}: {response.reason}.")
 
-    # NOTE(robinson) - The warning we catch comes from the detectron2
-    # code. We have an issue to contribute back a fix for that
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        doc._read()
-        pages = [page for page in doc.pages]
-
-    return pages
+    # NOTE(yuming): return the result from post request as a dictionary
+    partition_result = json.loads(response.content.decode("utf-8"))
+    return partition_result
 
 
 import re
@@ -68,7 +72,7 @@ def structure_oer(pages):
 
     structured_oer = dict()
 
-    first_page = pages[0].elements
+    first_page = pages[0]["elements"]
     if len(first_page) < 2:
         raise ValueError(
             f"Number of narrative text elements on the "
@@ -76,11 +80,11 @@ def structure_oer(pages):
             "Expected at least two."
         )
 
-    duty_description = clean_block_titles(first_page[0].text)
+    duty_description = clean_block_titles(first_page[0]["text"])
     structured_oer["duty_description"] = duty_description
-    structured_oer["rater_comments"] = first_page[-1].text
+    structured_oer["rater_comments"] = first_page[-1]["text"]
 
-    second_page = pages[1].elements
+    second_page = pages[1]["elements"]
     num_sections = len(COMMENT_BLOCKS)
 
     if len(first_page) < 2:
@@ -92,19 +96,18 @@ def structure_oer(pages):
 
     for i, section in enumerate(second_page[:num_sections]):
         key = COMMENT_BLOCKS[i]
-        structured_oer[key] = section.text
+        structured_oer[key] = section["text"]
 
-    structured_oer["intermediate_rater"] = second_page[-2].text
+    structured_oer["intermediate_rater"] = second_page[-2]["text"]
 
     return structured_oer
 
 
 def pipeline_api(text):
-    tmp = tempfile.NamedTemporaryFile(prefix="tmp_", delete=False)
-    tmp.write(text)
-    tmp.close()
+    with tempfile.NamedTemporaryFile(prefix="tmp_") as tmp:
+        tmp.write(text)
+        pages = partition_oer(tmp.name)["pages"]
 
-    pages = partition_oer(tmp.name)
     return structure_oer(pages)
 
 
@@ -116,6 +119,7 @@ async def pipeline_1(
 ):
 
     text = file.file.read().decode("utf-8")
+
     response = pipeline_api(
         text,
     )

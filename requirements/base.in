@@ -1,4 +1,4 @@
-unstructured_api_tools==0.3.0
+unstructured_api_tools==0.4.1
 
 ratelimit
 requests

@@ -1,16 +1,16 @@
 import os
 from pathlib import Path
 import pytest
-import json 
+import json
 from fastapi.testclient import TestClient
 
-from prepline_oer.api.comments import app, pipeline_api
+from prepline_oer.api.comments import app
+from unstructured_api_tools.pipelines.api_conventions import get_pipeline_path
 
 DIRECTORY = Path(__file__).absolute().parent
 
 SAMPLE_DOCS_DIRECTORY = os.path.join(DIRECTORY, "..", "..", "sample-docs")
 
-from unstructured_api_tools.pipelines.api_conventions import get_pipeline_path
 
 COMMENTS_ROUTE = get_pipeline_path("comments", pipeline_family="oer", semver="0.0.1")
 
@@ -36,7 +36,12 @@ def test_section_narrative_api(fake_structured_oer):
     client = TestClient(app)
     response = client.post(
         COMMENTS_ROUTE,
-        files={"files": (filename, open(filename, "rb"),)},
+        files={
+            "files": (
+                filename,
+                open(filename, "rb"),
+            )
+        },
     )
 
     assert response.status_code == 200

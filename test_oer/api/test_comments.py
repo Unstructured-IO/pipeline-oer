@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 import pytest
-
+import json 
 from fastapi.testclient import TestClient
 
 from prepline_oer.api.comments import app, pipeline_api
@@ -9,6 +9,10 @@ from prepline_oer.api.comments import app, pipeline_api
 DIRECTORY = Path(__file__).absolute().parent
 
 SAMPLE_DOCS_DIRECTORY = os.path.join(DIRECTORY, "..", "..", "sample-docs")
+
+from unstructured_api_tools.pipelines.api_conventions import get_pipeline_path
+
+COMMENTS_ROUTE = get_pipeline_path("comments", pipeline_family="oer", semver="0.0.1")
 
 
 @pytest.fixture
@@ -26,13 +30,17 @@ def fake_structured_oer():
     }
 
 
-def test_pipeline_api(fake_structured_oer):
+def test_section_narrative_api(fake_structured_oer):
     filename = os.path.join(SAMPLE_DOCS_DIRECTORY, "fake-oer.pdf")
 
-    with open(filename, "rb") as f:
-        oer = pipeline_api(f.read())
+    client = TestClient(app)
+    response = client.post(
+        COMMENTS_ROUTE,
+        files={"files": (filename, open(filename, "rb"),)},
+    )
 
-    assert oer == fake_structured_oer
+    assert response.status_code == 200
+    assert json.loads(response.content.decode("utf-8")) == fake_structured_oer
 
 
 def test_section_narrative_api_health_check():

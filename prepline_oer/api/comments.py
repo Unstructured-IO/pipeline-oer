@@ -21,15 +21,12 @@ RATE_LIMIT = os.environ.get("PIPELINE_API_RATE_LIMIT", "1/second")
 
 # pipeline-api
 import requests
-import tempfile
 
 
-def partition_oer(filename, include_elems=["Text", "Title"]):
+def partition_oer(file, filename, file_content_type=None, include_elems=["Text", "Title"]):
     response = requests.post(
         "https://dev.ml.unstructured.io/layout/pdf",
-        files={
-            "file": (filename, open(filename, "rb"), "application/pdf"),
-        },
+        files={"file": (filename, file, file_content_type)},
         data={"include_elems": include_elems},
     )
     # NOTE(yuming): return the result from post request as a dictionary
@@ -105,9 +102,7 @@ def structure_oer(pages):
 
 
 def pipeline_api(file, file_content_type=None, filename=None):
-    with tempfile.NamedTemporaryFile(prefix="tmp_") as tmp_file:
-        tmp_file.write(file.read())
-        pages = partition_oer(tmp_file.name)["pages"]
+    pages = partition_oer(file, filename, file_content_type=file_content_type)["pages"]
 
     return structure_oer(pages)
 

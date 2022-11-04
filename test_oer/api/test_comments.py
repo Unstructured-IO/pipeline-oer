@@ -4,7 +4,7 @@ import pytest
 import json
 from fastapi.testclient import TestClient
 
-from prepline_oer.api.comments import app, pipeline_api, structure_oer
+from prepline_oer.api.comments import app, structure_oer
 from unstructured_api_tools.pipelines.api_conventions import get_pipeline_path
 
 DIRECTORY = Path(__file__).absolute().parent
@@ -28,15 +28,6 @@ def fake_structured_oer():
         "achieves": "1LT X is #2 of the 20 Lieutenants I senior rated. He is an asset for the future and will progress further in his military career. Keep assigning him to demanding position and select him for the Military Police Captains Career Course now. Promote ahead of peers to Captain and select him for the next Company Command.",  # noqa: E501
         "intermediate_rater": "1LT X is #2 of the 20 Lieutenants I senior rated. He is an asset for the future and will progress further in his military career. Keep assigning him to demanding position and select him for the Military Police Captains Career Course now. Promote ahead of peers to Captain and select him for the next Company Command.",  # noqa: E501
     }
-
-
-def test_pipeline_api(fake_structured_oer):
-    filename = os.path.join(SAMPLE_DOCS_DIRECTORY, "fake-oer.pdf")
-
-    with open(filename, "rb") as f:
-        oer = pipeline_api(f)
-
-    assert oer == fake_structured_oer
 
 
 @pytest.mark.parametrize(

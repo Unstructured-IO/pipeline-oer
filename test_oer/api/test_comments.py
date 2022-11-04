@@ -30,33 +30,27 @@ def fake_structured_oer():
     }
 
 
-def test_structure_oer_empty_pages_dict():
-    with pytest.raises(ValueError) as validation_exception:
-        structure_oer({})
-    assert str(validation_exception.value) == "Pages length is 0. Expected 2 pages."
-
-
-def test_structure_oer_short_first_page():
-    with pytest.raises(ValueError) as validation_exception:
-        structure_oer([{"elements": []}, {"elements": []}])
-    assert (
-        str(validation_exception.value)
-        == "Number of narrative text elements on the first page is 0. Expected at least two."
-    )
-
-
-def test_structure_oer_short_second_page():
-    with pytest.raises(ValueError) as validation_exception:
-        structure_oer(
+@pytest.mark.parametrize(
+    "invalid_pages, exception_message",
+    [
+        ({}, "Pages length is 0. Expected 2 pages."),
+        (
+            [{"elements": []}, {"elements": []}],
+            "Number of narrative text elements on the first page is 0. Expected at least two.",
+        ),
+        (
             [
                 {"elements": [{"text": "duty_description"}, {"text": "rater_comments"}]},
                 {"elements": []},
-            ]
-        )
-    assert (
-        str(validation_exception.value)
-        == "Number of narrative text elements on the second page is 0. Expected at least 6."
-    )
+            ],
+            "Number of narrative text elements on the second page is 0. Expected at least 6.",
+        ),
+    ],
+)
+def test_structure_oer_with_invalid_pages(invalid_pages, exception_message):
+    with pytest.raises(ValueError) as validation_exception:
+        structure_oer(invalid_pages)
+    assert str(validation_exception.value) == exception_message
 
 
 def test_section_narrative_api(fake_structured_oer):

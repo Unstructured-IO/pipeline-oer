@@ -81,7 +81,7 @@ def structure_oer(pages):
     second_page = pages[1]["elements"]
     num_sections = len(COMMENT_BLOCKS)
 
-    if len(first_page) < 2:
+    if len(second_page) < 2:
         raise ValueError(
             f"Number of narrative text elements on the "
             f"second page is {len(second_page)}. "

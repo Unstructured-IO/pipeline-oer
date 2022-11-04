@@ -1,14 +1,18 @@
 import os
 from pathlib import Path
 import pytest
-
+import json
 from fastapi.testclient import TestClient
 
-from prepline_oer.api.comments import app, pipeline_api
+from prepline_oer.api.comments import app, structure_oer
+from unstructured_api_tools.pipelines.api_conventions import get_pipeline_path
 
 DIRECTORY = Path(__file__).absolute().parent
 
 SAMPLE_DOCS_DIRECTORY = os.path.join(DIRECTORY, "..", "..", "sample-docs")
+
+
+COMMENTS_ROUTE = get_pipeline_path("comments", pipeline_family="oer", semver="0.0.1")
 
 
 @pytest.fixture
@@ -26,13 +30,87 @@ def fake_structured_oer():
     }
 
 
-def test_pipeline_api(fake_structured_oer):
+@pytest.mark.parametrize(
+    "invalid_pages, exception_message",
+    [
+        ({}, "Pages length is 0. Expected 2 pages."),
+        (
+            [{"elements": []}, {"elements": []}],
+            "Number of narrative text elements on the first page is 0. Expected at least two.",
+        ),
+        (
+            [
+                {"elements": [{"text": "duty_description"}, {"text": "rater_comments"}]},
+                {"elements": []},
+            ],
+            "Number of narrative text elements on the second page is 0. Expected at least 6.",
+        ),
+    ],
+)
+def test_structure_oer_with_invalid_pages(invalid_pages, exception_message):
+    with pytest.raises(ValueError) as validation_exception:
+        structure_oer(invalid_pages)
+    assert str(validation_exception.value) == exception_message
+
+
+def test_section_narrative_api(fake_structured_oer):
     filename = os.path.join(SAMPLE_DOCS_DIRECTORY, "fake-oer.pdf")
+    app.state.limiter.reset()
+    client = TestClient(app)
+    response = client.post(
+        COMMENTS_ROUTE,
+        files={
+            "files": (
+                filename,
+                open(filename, "rb"),
+            )
+        },
+    )
 
-    with open(filename, "rb") as f:
-        oer = pipeline_api(f.read())
+    assert response.status_code == 200
+    assert json.loads(response.content.decode("utf-8")) == fake_structured_oer
 
-    assert oer == fake_structured_oer
+
+def test_section_narrative_api_with_no_file():
+    app.state.limiter.reset()
+    client = TestClient(app)
+    response = client.post(
+        COMMENTS_ROUTE,
+    )
+
+    assert response.status_code == 400
+
+
+def test_section_narrative_api_with_conflict_in_media_type():
+    filename = os.path.join(SAMPLE_DOCS_DIRECTORY, "fake-oer.pdf")
+    app.state.limiter.reset()
+    client = TestClient(app)
+    response = client.post(
+        COMMENTS_ROUTE,
+        headers={"Accept": "application/pdf"},
+        files=[
+            ("files", (filename, open(filename, "rb"), "application/pdf")),
+            ("files", (filename, open(filename, "rb"), "application/pdf")),
+        ],
+    )
+
+    assert response.status_code == 406
+
+
+def test_section_narrative_api_with_multiple_files():
+    filename = os.path.join(SAMPLE_DOCS_DIRECTORY, "fake-oer.pdf")
+    app.state.limiter.reset()
+    client = TestClient(app)
+    response = client.post(
+        COMMENTS_ROUTE,
+        headers={"Accept": "multipart/mixed"},
+        files=[
+            ("files", (filename, open(filename, "rb"), "application/pdf")),
+            ("files", (filename, open(filename, "rb"), "application/pdf")),
+        ],
+    )
+
+    assert response.status_code == 200
 
 
 def test_section_narrative_api_health_check():

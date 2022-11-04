@@ -14,7 +14,7 @@ help: Makefile
 
 ## install-base:                installs minimum requirements to run the API
 .PHONY: install-base
-install-base: install-base-pip-packages install-detectron2
+install-base: install-base-pip-packages
 
 ## install:                     installs all test and dev requirements
 .PHONY: install
@@ -24,11 +24,6 @@ install: install-base install-test install-dev
 install-base-pip-packages:
 	python3 -m pip install pip==${PIP_VERSION}
 	pip install -r requirements/base.txt
-
-.PHONY: install-detectron2
-install-detectron2:
-	pip install torch
-	pip install "detectron2@git+https://github.com/facebookresearch/detectron2.git@v0.6#egg=detectron2"
 
 .PHONY: install-test
 install-test:
@@ -92,7 +87,7 @@ stop-app-local:
 ## run-app-dev:                 runs the FastAPI api with hot reloading
 .PHONY: run-app-dev
 run-app-dev:
-	 PYTHONPATH=. uvicorn ${PACKAGE_NAME}.api.section:app --reload
+	 PYTHONPATH=. uvicorn ${PACKAGE_NAME}.api.comments:app --reload
 
 #################
 # Test and Lint #

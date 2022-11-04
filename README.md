@@ -36,6 +36,15 @@ start the API with hot reloading.
 The API will run at `http:/127.0.0.1:5000`.
 You can view the swagger documentation at `http://127.0.0.1/docs`.
 
+#### Extracting Structured Text from an OER PDF document
+After API starts, you can extract the elements of OER files with the command:
+```
+curl -X 'POST' \
+  'http://localhost:8000/oer/v0.0.1/comments' \
+  -F 'files=@<your_oer_pdf_file>' \
+  | jq -C . | less -R
+```
+
 ### Generating Python files from the pipeline notebooks
 
 You can generate the FastAPI APIs from your pipeline notebooks by running `make generate-api`.

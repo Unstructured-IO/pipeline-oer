@@ -62,7 +62,7 @@ COMMENT_BLOCKS = [
 def structure_oer(pages):
     """Creates a dictionary with the extracted elements of the OER"""
     if len(pages) < 2:
-        raise ValueError(f"Pages length is {len(pages)}). " "Expected 2 pages.")
+        raise ValueError(f"Pages length is {len(pages)}. " "Expected 2 pages.")
 
     structured_oer = dict()
 

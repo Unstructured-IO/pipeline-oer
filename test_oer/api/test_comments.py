@@ -4,7 +4,7 @@ import pytest
 import json
 from fastapi.testclient import TestClient
 
-from prepline_oer.api.comments import app
+from prepline_oer.api.comments import app, structure_oer
 from unstructured_api_tools.pipelines.api_conventions import get_pipeline_path
 
 DIRECTORY = Path(__file__).absolute().parent
@@ -28,6 +28,35 @@ def fake_structured_oer():
         "achieves": "1LT X is #2 of the 20 Lieutenants I senior rated. He is an asset for the future and will progress further in his military career. Keep assigning him to demanding position and select him for the Military Police Captains Career Course now. Promote ahead of peers to Captain and select him for the next Company Command.",  # noqa: E501
         "intermediate_rater": "1LT X is #2 of the 20 Lieutenants I senior rated. He is an asset for the future and will progress further in his military career. Keep assigning him to demanding position and select him for the Military Police Captains Career Course now. Promote ahead of peers to Captain and select him for the next Company Command.",  # noqa: E501
     }
+
+
+def test_structure_oer_empty_pages_dict():
+    with pytest.raises(ValueError) as validation_exception:
+        structure_oer({})
+    assert str(validation_exception.value) == "Pages length is 0. Expected 2 pages."
+
+
+def test_structure_oer_short_first_page():
+    with pytest.raises(ValueError) as validation_exception:
+        structure_oer([{"elements": []}, {"elements": []}])
+    assert (
+        str(validation_exception.value)
+        == "Number of narrative text elements on the first page is 0. Expected at least two."
+    )
+
+
+def test_structure_oer_short_second_page():
+    with pytest.raises(ValueError) as validation_exception:
+        structure_oer(
+            [
+                {"elements": [{"text": "duty_description"}, {"text": "rater_comments"}]},
+                {"elements": []},
+            ]
+        )
+    assert (
+        str(validation_exception.value)
+        == "Number of narrative text elements on the second page is 0. Expected at least 6."
+    )
 
 
 def test_section_narrative_api(fake_structured_oer):

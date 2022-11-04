@@ -23,7 +23,9 @@ RATE_LIMIT = os.environ.get("PIPELINE_API_RATE_LIMIT", "1/second")
 import requests
 
 
-def partition_oer(file, filename, file_content_type=None, include_elems=["Text", "Title"]):
+def partition_oer(
+    file, filename, file_content_type=None, include_elems=["Text", "Title"]
+):
     response = requests.post(
         "https://dev.ml.unstructured.io/layout/pdf",
         files={"file": (filename, file, file_content_type)},

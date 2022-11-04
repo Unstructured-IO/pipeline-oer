@@ -87,7 +87,7 @@ stop-app-local:
 ## run-app-dev:                 runs the FastAPI api with hot reloading
 .PHONY: run-app-dev
 run-app-dev:
-	 PYTHONPATH=. uvicorn ${PACKAGE_NAME}.api.section:app --reload
+	 PYTHONPATH=. uvicorn ${PACKAGE_NAME}.api.comments:app --reload
 
 #################
 # Test and Lint #

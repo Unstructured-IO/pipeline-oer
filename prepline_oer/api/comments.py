@@ -28,7 +28,7 @@ def partition_oer(filename, include_elems=["Text", "Title"]):
     response = requests.post(
         "https://dev.ml.unstructured.io/layout/pdf",
         files={
-            "file": (filename, open(filename, "rb")),
+            "file": (filename, open(filename, "rb"), "application/pdf"),
         },
         data={"include_elems": include_elems},
     )
@@ -105,12 +105,9 @@ def structure_oer(pages):
 
 
 def pipeline_api(file, file_content_type=None, filename=None):
-    if filename is not None and os.path.isfile(filename):
-        pages = partition_oer(filename)["pages"]
-    else:
-        with tempfile.NamedTemporaryFile(prefix="tmp_") as tmp_file:
-            tmp_file.write(file.read())
-            pages = partition_oer(tmp_file.name)["pages"]
+    with tempfile.NamedTemporaryFile(prefix="tmp_") as tmp_file:
+        tmp_file.write(file.read())
+        pages = partition_oer(tmp_file.name)["pages"]
 
     return structure_oer(pages)
 

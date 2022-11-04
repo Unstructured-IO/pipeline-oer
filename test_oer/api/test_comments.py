@@ -98,8 +98,8 @@ def test_section_narrative_api_with_conflict_in_media_type():
         COMMENTS_ROUTE,
         headers={"Accept": "application/pdf"},
         files=[
-            ("files", (filename, open(filename, "rb"))),
-            ("files", (filename, open(filename, "rb"))),
+            ("files", (filename, open(filename, "rb"), "application/pdf")),
+            ("files", (filename, open(filename, "rb"), "application/pdf")),
         ],
     )
 
@@ -114,8 +114,8 @@ def test_section_narrative_api_with_multiple_files():
         COMMENTS_ROUTE,
         headers={"Accept": "multipart/mixed"},
         files=[
-            ("files", (filename, open(filename, "rb"))),
-            ("files", (filename, open(filename, "rb"))),
+            ("files", (filename, open(filename, "rb"), "application/pdf")),
+            ("files", (filename, open(filename, "rb"), "application/pdf")),
         ],
     )
 

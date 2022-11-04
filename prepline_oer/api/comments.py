@@ -60,7 +60,13 @@ COMMENT_BLOCKS = [
 
 
 def structure_oer(pages):
-    """Creates a dictionary with the extracted elements of the OER"""
+    """Creates a dictionary with the extracted elements of the OER.
+    Input is a list of dictionaries,
+    each dictionary contains raw information of a page as extracted from PDF parsing.
+    Output is a dictionary,
+    each key is a block name from COMMENT_BLOCKS
+    and the value is the extracted texts from the block.
+    """
     if len(pages) < 2:
         raise ValueError(f"Pages length is {len(pages)}. " "Expected 2 pages.")
 

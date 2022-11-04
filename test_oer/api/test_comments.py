@@ -32,7 +32,7 @@ def fake_structured_oer():
 
 def test_section_narrative_api(fake_structured_oer):
     filename = os.path.join(SAMPLE_DOCS_DIRECTORY, "fake-oer.pdf")
-
+    app.state.limiter.reset()
     client = TestClient(app)
     response = client.post(
         COMMENTS_ROUTE,
@@ -46,6 +46,32 @@ def test_section_narrative_api(fake_structured_oer):
 
     assert response.status_code == 200
     assert json.loads(response.content.decode("utf-8")) == fake_structured_oer
+
+
+def test_section_narrative_api_with_no_file():
+    app.state.limiter.reset()
+    client = TestClient(app)
+    response = client.post(
+        COMMENTS_ROUTE,
+    )
+
+    assert response.status_code == 400
+
+
+def test_section_narrative_api_with_conflict_in_media_type():
+    filename = os.path.join(SAMPLE_DOCS_DIRECTORY, "fake-oer.pdf")
+    app.state.limiter.reset()
+    client = TestClient(app)
+    response = client.post(
+        COMMENTS_ROUTE,
+        headers={"Accept": "application/pdf"},
+        files=[
+            ("files", (filename, open(filename, "rb"))),
+            ("files", (filename, open(filename, "rb"))),
+        ],
+    )
+
+    assert response.status_code == 406
 
 
 def test_section_narrative_api_health_check():

@@ -21,6 +21,7 @@ RATE_LIMIT = os.environ.get("PIPELINE_API_RATE_LIMIT", "1/second")
 
 # pipeline-api
 import requests
+import tempfile
 
 
 def partition_oer(filename, include_elems=["Text", "Title"]):
@@ -104,7 +105,12 @@ def structure_oer(pages):
 
 
 def pipeline_api(file, file_content_type=None, filename=None):
-    pages = partition_oer(filename)["pages"]
+    if filename is not None and os.path.isfile(filename):
+        pages = partition_oer(filename)["pages"]
+    else:
+        with tempfile.NamedTemporaryFile(prefix="tmp_") as tmp_file:
+            tmp_file.write(file.read())
+            pages = partition_oer(tmp_file.name)["pages"]
 
     return structure_oer(pages)
 

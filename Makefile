@@ -64,30 +64,15 @@ generate-api:
 # Local #
 ########
 
-## run-notebooks-local:         runs the container as a docker compose file
-.PHONY: run-notebooks-local
-run-notebooks-local:
-	docker-compose -p ${PIPELINE_FAMILY} -f docker/docker-compose-notebook.yaml up
+## run-jupyter:                 starts jupyter notebook
+.PHONY: run-jupyter
+run-jupyter:
+	PYTHONPATH=$(realpath .) JUPYTER_PATH=$(realpath .) jupyter-notebook --NotebookApp.token='' --NotebookApp.password=''
 
-## stop-notebooks-local:        stops the container
-.PHONY: stop-notebooks-local
-stop-notebooks-local:
-	docker-compose -p ${PIPELINE_FAMILY} stop
-
-## start-app-local:             runs FastAPI in the container with hot reloading
-.PHONY: start-app-local
-start-app-local:
-	docker-compose -p ${PIPELINE_FAMILY}-api -f docker/docker-compose-api.yaml up
-
-## stop-app-local:              stops the container
-.PHONY: stop-app-local
-stop-app-local:
-	docker-compose -p ${PIPELINE_FAMILY}-api stop
-
-## run-app-dev:                 runs the FastAPI api with hot reloading
-.PHONY: run-app-dev
+## run-web-app:                 runs the FastAPI api with hot reloading
+.PHONY: run-web-app
 run-app-dev:
-	 PYTHONPATH=. uvicorn ${PACKAGE_NAME}.api.comments:app --reload
+	 PYTHONPATH=$(realpath .) uvicorn ${PACKAGE_NAME}.api.comments:app --reload
 
 #################
 # Test and Lint #

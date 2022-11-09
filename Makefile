@@ -71,7 +71,7 @@ run-jupyter:
 
 ## run-web-app:                 runs the FastAPI api with hot reloading
 .PHONY: run-web-app
-run-app-dev:
+run-web-app:
 	 PYTHONPATH=$(realpath .) uvicorn ${PACKAGE_NAME}.api.comments:app --reload
 
 #################

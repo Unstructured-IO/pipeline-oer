@@ -22,9 +22,7 @@ RATE_LIMIT = os.environ.get("PIPELINE_API_RATE_LIMIT", "1/second")
 import requests
 
 
-def partition_oer(
-    file, filename, file_content_type=None, include_elems=["Text", "Title", "Table"]
-):
+def partition_oer(file, filename, file_content_type=None, include_elems=["Text", "Title", "Table"]):
     response = requests.post(
         "https://ml.unstructured.io/layout/pdf",
         files={"file": (filename, file, file_content_type)},
@@ -36,9 +34,7 @@ def partition_oer(
 
 from unstructured.cleaners.core import clean_prefix, clean_extra_whitespace
 
-BLOCK_TITLE_PATTTERN = (
-    r"c. (SIGNIFICANT DUTIES AND RESPONSIBILITIES" r"|COMMENTS ON POTENTIAL):?"
-)
+BLOCK_TITLE_PATTTERN = r"c. (SIGNIFICANT DUTIES AND RESPONSIBILITIES" r"|COMMENTS ON POTENTIAL):?"
 
 
 import re
@@ -68,9 +64,7 @@ def get_rater_sections(pages):
     rater_sections = dict()
     for element in pages[1]["elements"]:
         if re.search(SECTION_PATTERN, element["text"], flags=re.IGNORECASE):
-            section_split = re.split(
-                SECTION_PATTERN, element["text"], flags=re.IGNORECASE
-            )
+            section_split = re.split(SECTION_PATTERN, element["text"], flags=re.IGNORECASE)
             for chunk in section_split:
                 for key, description in DESCRIPTIONS.items():
                     if description in chunk:
@@ -98,9 +92,7 @@ def get_senior_rater_comments(pages):
         if re.search(SENIOR_RATER_PREFIX, element["text"]):
             raw_comments = clean_prefix(element["text"], SENIOR_RATER_PREFIX)
 
-            sr_rater_comments = extract_text_before(
-                raw_comments, NEXT_ASSIGNMENT_PREFIX
-            )
+            sr_rater_comments = extract_text_before(raw_comments, NEXT_ASSIGNMENT_PREFIX)
             sr_rater_comments = clean_postfix(sr_rater_comments, BLOCK_TITLE_PATTTERN)
 
             next_assigments = extract_text_after(raw_comments, NEXT_ASSIGNMENT_PREFIX)
@@ -124,9 +116,7 @@ def structure_oer(pages):
 
     structured_oer = dict()
 
-    first_page = [
-        element for element in pages[0]["elements"] if element["type"] == "Text"
-    ]
+    first_page = [element for element in pages[0]["elements"] if element["type"] == "Text"]
     if len(first_page) < 2:
         raise ValueError(
             f"Number of narrative text elements on the "
@@ -141,9 +131,7 @@ def structure_oer(pages):
     structured_oer["rater_sections"] = get_rater_sections(pages)
     structured_oer["senior_rater_comments"] = get_senior_rater_comments(pages)
 
-    second_page = [
-        element for element in pages[1]["elements"] if element["type"] == "Text"
-    ]
+    second_page = [element for element in pages[1]["elements"] if element["type"] == "Text"]
     structured_oer["intermediate_rater"] = second_page[-2]["text"]
 
     return structured_oer

@@ -20,12 +20,18 @@ def fake_structured_oer():
     return {
         "duty_description": "Personnel and Administration Officer (S1) for a training battalion in the U.S. Army reserve. Principal staff assistant to the battalion commander. Exercise staff supervisor in matters pertaining to strength management, personnel qualifications and evaluations, personnel assignment, clearance, recruiting, retention, and battalion administration. Responsible for the overall supervision of the battalion Personnel Administration Center (PAC) and its activities. Serves as commander of Headquarters and Headquarters Detachment. Additional duties include; Battalion Safety Officer, Equal Opportunity Officer, Records Management Officer, and Retention Officer.",  # noqa: E501
         "rater_comments": "1LT X performed flawlessly in the execution of an overseas detention and area security mission at Guantanamo Bay, Cuba. Exceptional performance during this limited rating period by CPT X.",  # noqa: E501
-        "character": "1LT X’s exceptional command presence and resilience lends itself to consistent mission accomplishment, good order and discipline, and a positive climate. 1LT X’s outstanding attitude and thirst for knowledge exceeds those around him which contributes to his overall exceptional character.",  # noqa: E501
-        "presence": "1LT X is able to analyze a situation and introduce new ideas when opportunities exist, approaching challenging circumstances with creativity and intellect. 1LT X is highly proficient in interacting with others, effectively adjusting behaviors when interacting with superiors, peers, and subordinates.",  # noqa: E501
-        "intellect": "1LT X demonstrates the full range of required influence techniques enabling him to speak, lead and motivate every person in his unit. 1LT X works with the Alameda County Sheriff’s office, as well as other outside agencies, in order to build positive relationships established that have enhanced unit training.",  # noqa: E501
-        "leads": "Absolute professional and squared away for duty; current on all applicable skills, knowledge, and mental toughness by engaging in engages in continual self-development. Using his extensive experience, 1LT X works well after normal duty hours, provides coaching, and counseling and mentoring.",  # noqa: E501
-        "develops": "Developed AAR reporting template that standardized information across the battalion and ensured compliance with Army Regulations. She consistently presented appropriate and useful monthly reports on security clearances, weather effects, and threat assessments.",  # noqa: E501
-        "achieves": "1LT X is #2 of the 20 Lieutenants I senior rated. He is an asset for the future and will progress further in his military career. Keep assigning him to demanding position and select him for the Military Police Captains Career Course now. Promote ahead of peers to Captain and select him for the next Company Command.",  # noqa: E501
+        "rater_sections": {
+            "achieves": "Developed AAR reporting template that standardized information across the battalion and ensured compliance with Army Regulations. She consistently presented appropriate and useful monthly reports on security clearances, weather effects, and threat assessments.",  # noqa: E501
+            "develops": "Absolute professional and squared away for duty; current on all applicable skills, knowledge, and mental toughness by engaging in engages in continual self-development. Using his extensive experience, 1LT X works well after normal duty hours, provides coaching, and counseling and mentoring.",  # noqa: E501
+            "leads": "1LT X demonstrates the full range of required influence techniques enabling him to speak, lead and motivate every person in his unit. 1LT X works with the Alameda County Sheriff’s office, as well as other outside agencies, in order to build positive relationships established that have enhanced unit training.",  # noqa: E501
+            "intellect": "1LT X is able to analyze a situation and introduce new ideas when opportunities exist, approaching challenging circumstances with creativity and intellect. 1LT X is highly proficient in interacting with others, effectively adjusting behaviors when interacting with superiors, peers, and subordinates.",  # noqa: E501
+            "presence": "1LT X maintains an excellent fitness level and sets the standard for his Soldiers, with a score of 275 on his last APFT. 1LT X models the composure, outward calm, and control over his emotions that you want to see in a leader during adverse conditions.",  # noqa: E501
+            "character": "1LT X’s exceptional command presence and resilience lends itself to consistent mission accomplishment, good order and discipline, and a positive climate. 1LT X’s outstanding attitude and thirst for knowledge exceeds those around him which contributes to his overall exceptional character.",  # noqa: E501
+        },
+        "senior_rater_comments": {
+            "comments": "I currently senior rate Army Officers in this grade. 1LT X is an intelligent and creative Officer with the potential to progress in rank as a leader. 1LT X is ready for positions of increased responsibilities; he will excel as a Staff Officer followed by Company Command if given the opportunity. Select for Military Police Captains Career Course and promote to captain when eligible.",  # noqa: E501
+            "next_assignment": ["Battalion FDO", " Battalion AS3", " Battalion S4"],  # noqa: E501
+        },
         "intermediate_rater": "1LT X is #2 of the 20 Lieutenants I senior rated. He is an asset for the future and will progress further in his military career. Keep assigning him to demanding position and select him for the Military Police Captains Career Course now. Promote ahead of peers to Captain and select him for the next Company Command.",  # noqa: E501
     }
 
@@ -37,13 +43,6 @@ def fake_structured_oer():
         (
             [{"elements": []}, {"elements": []}],
             "Number of narrative text elements on the first page is 0. Expected at least two.",
-        ),
-        (
-            [
-                {"elements": [{"text": "duty_description"}, {"text": "rater_comments"}]},
-                {"elements": []},
-            ],
-            "Number of narrative text elements on the second page is 0. Expected at least 6.",
         ),
     ],
 )

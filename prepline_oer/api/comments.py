@@ -24,55 +24,108 @@ import requests
 
 
 def partition_oer(
-    file, filename, file_content_type=None, include_elems=["Text", "Title"]
+    file, filename, file_content_type=None, include_elems=["Text", "Title", "Table"]
 ):
     response = requests.post(
-        "https://dev.ml.unstructured.io/layout/pdf",
+        "https://ml.unstructured.io/layout/pdf",
         files={"file": (filename, file, file_content_type)},
         data={"include_elems": include_elems},
     )
-    # NOTE(yuming): return the result from post request as a dictionary
     partition_result = json.loads(response.content.decode("utf-8"))
     return partition_result
 
 
+from unstructured.cleaners.core import clean_prefix, clean_extra_whitespace
+
+BLOCK_TITLE_PATTTERN = (
+    r"c. (SIGNIFICANT DUTIES AND RESPONSIBILITIES|COMMENTS ON POTENTIAL):?"
+)
 import re
 
+from unstructured.cleaners.core import clean_postfix, replace_unicode_quotes
 
-BLOCK_TITLE_RE = re.compile(
-    r"c. (SIGNIFICANT DUTIES AND RESPONSIBILITIES" r"|COMMENTS ON POTENTIAL)"
+DESCRIPTIONS = {
+    "character": "Adherence to Army Values, Empathy, and Warrior Ethos/Service Ethos"
+    " and Discipline. Fully supports SHARP, EO, and EEO.",
+    "presence": "Military and Professional Bearing, Fitness, Confident, Resilient",
+    "intellect": "Mental Agility, Sound Judgment, Innovation, Interpersonal Tact, Expertise",
+    "leads": "Leads Others, Builds Trust, Extends Influence beyond the Chain of"
+    " Command, Leads by Example, Communicates",
+    "develops": "Creates a positive command/workplace environment/Fosters Esprit de"
+    " Corps, Prepares Self, Develops Others, Stewards the Profession",
+    "achieves": "Gets Results",
+}
+
+SECTION_PATTERN = r"c. [1-6]\) ({0}) :".format("|".join(list(DESCRIPTIONS.keys())))
+
+DESCRIPTION_PATTERN = r"\(({0})\)".format("|".join(list(DESCRIPTIONS.values())))
+
+
+def get_rater_sections(pages):
+    """Extracts the Character, Presence, Intellect, Leads, Develops, and Achieves blocks
+    from the rater comments and converts them to a dictionary."""
+    rater_sections = dict()
+    for element in pages[1]["elements"]:
+        if re.search(SECTION_PATTERN, element["text"], flags=re.IGNORECASE):
+            section_split = re.split(
+                SECTION_PATTERN, element["text"], flags=re.IGNORECASE
+            )
+            for chunk in section_split:
+                for key, description in DESCRIPTIONS.items():
+                    if description in chunk:
+                        comments = clean_postfix(chunk.strip(), DESCRIPTION_PATTERN)
+                        rater_sections[key] = replace_unicode_quotes(comments)
+    return rater_sections
+
+
+from unstructured.cleaners.extract import extract_text_after, extract_text_before
+
+
+SENIOR_RATER_PREFIX = (
+    r"PART VI - SENIOR RATER POTENTIAL COMPARED WITH OFFICERS SENIOR RATED IN SAME GRADE "
+    r"\(OVERPRINTED BY DA\) MOST QUALIFIED "
+    r"\(limited to 49%\) HIGHLY QUALIFIED QUALIFIED NOT QUALIFIED b. "
+)
+
+NEXT_ASSIGNMENT_PREFIX = (
+    "d. List 3 future SUCCESSIVE assignments for which this Officer is best suited: "
 )
 
 
-def clean_block_titles(narrative: str) -> str:
-    """Cleans the name of the block from the extracted narrative text"""
-    return BLOCK_TITLE_RE.sub("", narrative).strip()
+def get_senior_rater_comments(pages):
+    for element in pages[1]["elements"]:
+        if re.search(SENIOR_RATER_PREFIX, element["text"]):
+            raw_comments = clean_prefix(element["text"], SENIOR_RATER_PREFIX)
 
+            sr_rater_comments = extract_text_before(
+                raw_comments, NEXT_ASSIGNMENT_PREFIX
+            )
+            sr_rater_comments = clean_postfix(sr_rater_comments, BLOCK_TITLE_PATTTERN)
 
-COMMENT_BLOCKS = [
-    "character",
-    "presence",
-    "intellect",
-    "leads",
-    "develops",
-    "achieves",
-]
+            next_assigments = extract_text_after(raw_comments, NEXT_ASSIGNMENT_PREFIX)
+
+            return {
+                "comments": sr_rater_comments,
+                "next_assignment": next_assigments.split(";"),
+            }
+
+    return dict()
 
 
 def structure_oer(pages):
     """Creates a dictionary with the extracted elements of the OER.
     Input is a list of dictionaries,
     each dictionary contains raw information of a page as extracted from PDF parsing.
-    Output is a dictionary,
-    each key is a block name from COMMENT_BLOCKS
-    and the value is the extracted texts from the block.
+    Output is a dictionary that includes structured extracted information from the OER.
     """
     if len(pages) < 2:
         raise ValueError(f"Pages length is {len(pages)}. " "Expected 2 pages.")
 
     structured_oer = dict()
 
-    first_page = pages[0]["elements"]
+    first_page = [
+        element for element in pages[0]["elements"] if element["type"] == "Text"
+    ]
     if len(first_page) < 2:
         raise ValueError(
             f"Number of narrative text elements on the "
@@ -80,24 +133,16 @@ def structure_oer(pages):
             "Expected at least two."
         )
 
-    duty_description = clean_block_titles(first_page[0]["text"])
-    structured_oer["duty_description"] = duty_description
+    duty_description = first_page[0]["text"]
+    duty_description = clean_prefix(duty_description, BLOCK_TITLE_PATTTERN)
+    structured_oer["duty_description"] = clean_extra_whitespace(duty_description)
     structured_oer["rater_comments"] = first_page[-1]["text"]
+    structured_oer["rater_sections"] = get_rater_sections(pages)
+    structured_oer["senior_rater_comments"] = get_senior_rater_comments(pages)
 
-    second_page = pages[1]["elements"]
-    num_sections = len(COMMENT_BLOCKS)
-
-    if len(second_page) < 2:
-        raise ValueError(
-            f"Number of narrative text elements on the "
-            f"second page is {len(second_page)}. "
-            f"Expected at least {num_sections}."
-        )
-
-    for i, section in enumerate(second_page[:num_sections]):
-        key = COMMENT_BLOCKS[i]
-        structured_oer[key] = section["text"]
-
+    second_page = [
+        element for element in pages[1]["elements"] if element["type"] == "Text"
+    ]
     structured_oer["intermediate_rater"] = second_page[-2]["text"]
 
     return structured_oer

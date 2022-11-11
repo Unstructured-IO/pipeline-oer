@@ -19,6 +19,7 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 RATE_LIMIT = os.environ.get("PIPELINE_API_RATE_LIMIT", "1/second")
 
+# pipeline-api
 import requests
 
 
@@ -39,8 +40,6 @@ from unstructured.cleaners.core import clean_prefix, clean_extra_whitespace
 BLOCK_TITLE_PATTTERN = (
     r"c. (SIGNIFICANT DUTIES AND RESPONSIBILITIES|COMMENTS ON POTENTIAL):?"
 )
-
-
 import re
 
 from unstructured.cleaners.core import clean_postfix, replace_unicode_quotes

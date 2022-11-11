@@ -72,6 +72,18 @@ and get the following JSON as the output:
 }
 ```
 
+You can also run the extraction code locally by running the following from the root
+directory of this project:
+
+```python
+from prepline_oer.api.comments import pipeline_api
+
+filename = "sample-docs/fake-oer.pdf"
+
+with open(filename, "rb") as f:
+    pipeline_api(file=f, filename=filename)
+```
+
 ### Generating Python files from the pipeline notebooks
 
 You can generate the FastAPI APIs from your pipeline notebooks by running `make generate-api`.

@@ -87,7 +87,7 @@ with open(filename, "rb") as f:
 #### Running Inferences Locally
 
 - Clone the `ml-inference` repo with `git clone https://github.com/Unstructured-IO/ml-inference`. The
-  `ml-inference` repo is not yet public. If you are a beta test, ask an Unstrucutred team member
+  `ml-inference` repo is not yet public. If you are a beta test, ask an Unstructured team member
   for access.
 - Start the `ml-inference` service by running `make run-app-dev` from the `ml-inference directory`.
 - Start the OER pipeline API with `UVICORN_PORT=5000 make run-web-app`. The `UVICORN_PORT` variable
@@ -100,7 +100,7 @@ curl -X 'POST' \
   -H 'accept: application/json' \
   -H 'Content-Type: multipart/form-data' \
   -F 'files=@fake-oer.pdf;type=application/pdf' \
-  -F 'mode=local'
+  -F 'inference_mode=local'
 ```
 
 You can make the same call directly in Python with
@@ -111,7 +111,7 @@ from prepline_oer.api.comments import pipeline_api
 filename = "sample-docs/fake-oer.pdf"
 
 with open(filename, "rb") as f:
-    pipeline_api(file=f, filename=filename, m_mode="local")
+    pipeline_api(file=f, filename=filename, m_inference_mode="local")
 ```
 
 

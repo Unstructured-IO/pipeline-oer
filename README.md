@@ -72,8 +72,8 @@ and get the following JSON as the output:
 }
 ```
 
-You can also run the extraction code locally by running the following from the root
-directory of this project:
+You can also run the extraction code with Python directly using the following comments
+root directory of this project:
 
 ```python
 from prepline_oer.api.comments import pipeline_api
@@ -83,6 +83,38 @@ filename = "sample-docs/fake-oer.pdf"
 with open(filename, "rb") as f:
     pipeline_api(file=f, filename=filename)
 ```
+
+#### Running Inferences Locally
+
+- Clone the `ml-inference` repo with `git clone https://github.com/Unstructured-IO/ml-inference`. The
+  `ml-inference` repo is not yet public. If you are a beta test, ask an Unstrucutred team member
+  for access.
+- Start the `ml-inference` service by running `make run-app-dev` from the `ml-inference directory`.
+- Start the OER pipeline API with `UVICORN_PORT=5000 make run-web-app`. The `UVICORN_PORT` variable
+  is to deconflict ports with the inference service.
+- Make the following API call from the `sample-docs` directory
+
+```
+curl -X 'POST' \
+  'http://127.0.0.1:5000/oer/v0.0.1/comments' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'files=@fake-oer.pdf;type=application/pdf' \
+  -F 'mode=local'
+```
+
+You can make the same call directly in Python with
+
+```python
+from prepline_oer.api.comments import pipeline_api
+
+filename = "sample-docs/fake-oer.pdf"
+
+with open(filename, "rb") as f:
+    pipeline_api(file=f, filename=filename, m_mode="local")
+```
+
+
 
 ### Generating Python files from the pipeline notebooks
 

@@ -22,12 +22,31 @@ RATE_LIMIT = os.environ.get("PIPELINE_API_RATE_LIMIT", "1/second")
 # pipeline-api
 import requests
 
+VALID_MODES = ["prod", "dev", "local"]
+
+
+def get_layout_url(mode: str = "prod"):
+    if mode not in VALID_MODES:
+        raise ValueError(f"Invalid mode. Valid modes are {VALID_MODES}")
+
+    if mode == "prod":
+        return "https://ml.unstructured.io/layout/pdf"
+    if mode == "dev":
+        return "https://dev.ml.unstructured.io/layout/pdf"
+    if mode == "local":
+        return "http://localhost:8000/layout/pdf"
+
 
 def partition_oer(
-    file, filename, file_content_type=None, include_elems=["Text", "Title", "Table"]
+    file,
+    filename,
+    file_content_type=None,
+    include_elems=["Text", "Title", "Table"],
+    mode: str = "prod",
 ):
+    url = get_layout_url(mode)
     response = requests.post(
-        "https://ml.unstructured.io/layout/pdf",
+        url,
         files={"file": (filename, file, file_content_type)},
         data={"include_elems": include_elems},
     )

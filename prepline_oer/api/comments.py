@@ -19,8 +19,8 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 RATE_LIMIT = os.environ.get("PIPELINE_API_RATE_LIMIT", "1/second")
 
-# pipeline-api
 import requests
+
 
 VALID_MODES = ["prod", "dev", "local"]
 
@@ -59,6 +59,8 @@ from unstructured.cleaners.core import clean_prefix, clean_extra_whitespace
 BLOCK_TITLE_PATTTERN = (
     r"c. (SIGNIFICANT DUTIES AND RESPONSIBILITIES|COMMENTS ON POTENTIAL):?"
 )
+
+
 import re
 
 from unstructured.cleaners.core import clean_postfix, replace_unicode_quotes
@@ -167,8 +169,21 @@ def structure_oer(pages):
     return structured_oer
 
 
-def pipeline_api(file, file_content_type=None, filename=None):
-    pages = partition_oer(file, filename, file_content_type=file_content_type)["pages"]
+def pipeline_api(
+    file,
+    file_content_type=None,
+    filename=None,
+    m_mode=[],
+):
+    if len(m_mode) > 1:
+        raise ValueError("Only one value for mode can be passed.")
+    mode = m_mode[0] if len(m_mode) == 1 else "prod"
+    pages = partition_oer(
+        file,
+        filename,
+        file_content_type=file_content_type,
+        mode=mode,
+    )["pages"]
 
     return structure_oer(pages)
 
@@ -244,6 +259,7 @@ class MultipartMixedResponse(StreamingResponse):
 async def pipeline_1(
     request: Request,
     files: Union[List[UploadFile], None] = File(default=None),
+    mode: List[str] = Form(default=[]),
 ):
     content_type = request.headers.get("Accept")
 
@@ -265,6 +281,7 @@ async def pipeline_1(
 
                     response = pipeline_api(
                         _file,
+                        m_mode=mode,
                         filename=file.filename,
                         file_content_type=file.content_type,
                     )
@@ -282,6 +299,7 @@ async def pipeline_1(
 
             response = pipeline_api(
                 _file,
+                m_mode=mode,
                 filename=file.filename,
                 file_content_type=file.content_type,
             )

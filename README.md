@@ -72,8 +72,8 @@ and get the following JSON as the output:
 }
 ```
 
-You can also run the extraction code with Python directly using the following comments
-root directory of this project:
+You can also run the extraction code with Python directly using the following commands
+from the `pipeline-oer` directory:
 
 ```python
 from prepline_oer.api.comments import pipeline_api

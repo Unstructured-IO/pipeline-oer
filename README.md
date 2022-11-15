@@ -111,7 +111,7 @@ from prepline_oer.api.comments import pipeline_api
 filename = "sample-docs/fake-oer.pdf"
 
 with open(filename, "rb") as f:
-    pipeline_api(file=f, filename=filename, m_inference_mode="local")
+    pipeline_api(file=f, filename=filename, m_inference_mode=["local"])
 ```
 
 

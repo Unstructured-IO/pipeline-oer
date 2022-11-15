@@ -22,12 +22,29 @@ RATE_LIMIT = os.environ.get("PIPELINE_API_RATE_LIMIT", "1/second")
 # pipeline-api
 import requests
 
+VALID_MODES = ["prod", "local"]
+
+
+def get_layout_url(inference_mode: str = "prod"):
+    if inference_mode not in VALID_MODES:
+        raise ValueError(f"Invalid mode. Valid modes are {VALID_MODES}")
+
+    if inference_mode == "prod":
+        return "https://ml.unstructured.io/layout/pdf"
+    elif inference_mode == "local":
+        return "http://localhost:8000/layout/pdf"
+
 
 def partition_oer(
-    file, filename, file_content_type=None, include_elems=["Text", "Title", "Table"]
+    file,
+    filename,
+    file_content_type=None,
+    include_elems=["Text", "Title", "Table"],
+    inference_mode: str = "prod",
 ):
+    url = get_layout_url(inference_mode)
     response = requests.post(
-        "https://ml.unstructured.io/layout/pdf",
+        url,
         files={"file": (filename, file, file_content_type)},
         data={"include_elems": include_elems},
     )
@@ -148,8 +165,26 @@ def structure_oer(pages):
     return structured_oer
 
 
-def pipeline_api(file, file_content_type=None, filename=None):
-    pages = partition_oer(file, filename, file_content_type=file_content_type)["pages"]
+def pipeline_api(
+    file,
+    file_content_type=None,
+    filename=None,
+    m_inference_mode=[],
+):
+    if len(m_inference_mode) > 1:
+        raise ValueError("Only one value for mode can be passed.")
+
+    if len(m_inference_mode) == 1:
+        inference_mode = m_inference_mode[0]
+    else:
+        inference_mode = "prod"
+
+    pages = partition_oer(
+        file,
+        filename,
+        file_content_type=file_content_type,
+        inference_mode=inference_mode,
+    )["pages"]
 
     return structure_oer(pages)
 
@@ -225,6 +260,7 @@ class MultipartMixedResponse(StreamingResponse):
 async def pipeline_1(
     request: Request,
     files: Union[List[UploadFile], None] = File(default=None),
+    inference_mode: List[str] = Form(default=[]),
 ):
     content_type = request.headers.get("Accept")
 
@@ -246,6 +282,7 @@ async def pipeline_1(
 
                     response = pipeline_api(
                         _file,
+                        m_inference_mode=inference_mode,
                         filename=file.filename,
                         file_content_type=file.content_type,
                     )
@@ -263,6 +300,7 @@ async def pipeline_1(
 
             response = pipeline_api(
                 _file,
+                m_inference_mode=inference_mode,
                 filename=file.filename,
                 file_content_type=file.content_type,
             )

@@ -35,14 +35,49 @@ def partition_oer(
     return partition_result
 
 
+import re
+
 from unstructured.cleaners.core import clean_prefix, clean_extra_whitespace
 
 BLOCK_TITLE_PATTTERN = (
     r"c. (SIGNIFICANT DUTIES AND RESPONSIBILITIES|COMMENTS ON POTENTIAL):?"
 )
-import re
+from unstructured.cleaners.core import clean_postfix
+from unstructured.cleaners.extract import extract_text_after, extract_text_before
 
-from unstructured.cleaners.core import clean_postfix, replace_unicode_quotes
+
+SENIOR_RATER_PREFIX = (
+    r"PART VI - SENIOR RATER POTENTIAL COMPARED WITH OFFICERS SENIOR RATED IN SAME GRADE "
+    r"\(OVERPRINTED BY DA\) MOST QUALIFIED "
+    r"\(limited to 49%\) HIGHLY QUALIFIED QUALIFIED NOT QUALIFIED b. "
+)
+
+NEXT_ASSIGNMENT_PREFIX = (
+    "d. List 3 future SUCCESSIVE assignments for which this Officer is best suited: "
+)
+
+
+def get_senior_rater_comments(pages):
+    for element in pages[1]["elements"]:
+        if re.search(SENIOR_RATER_PREFIX, element["text"]):
+            raw_comments = clean_prefix(element["text"], SENIOR_RATER_PREFIX)
+
+            sr_rater_comments = extract_text_before(
+                raw_comments, NEXT_ASSIGNMENT_PREFIX
+            )
+            sr_rater_comments = clean_postfix(sr_rater_comments, BLOCK_TITLE_PATTTERN)
+
+            next_assigments = extract_text_after(raw_comments, NEXT_ASSIGNMENT_PREFIX)
+
+            return {
+                "comments": sr_rater_comments,
+                "next_assignment": next_assigments.split(";"),
+            }
+
+    return dict()
+
+
+from unstructured.cleaners.core import replace_unicode_quotes
 
 DESCRIPTIONS = {
     "character": "Adherence to Army Values, Empathy, and Warrior Ethos/Service Ethos"
@@ -76,40 +111,6 @@ def get_rater_sections(pages):
                         comments = clean_postfix(chunk.strip(), DESCRIPTION_PATTERN)
                         rater_sections[key] = replace_unicode_quotes(comments)
     return rater_sections
-
-
-from unstructured.cleaners.extract import extract_text_after, extract_text_before
-
-
-SENIOR_RATER_PREFIX = (
-    r"PART VI - SENIOR RATER POTENTIAL COMPARED WITH OFFICERS SENIOR RATED IN SAME GRADE "
-    r"\(OVERPRINTED BY DA\) MOST QUALIFIED "
-    r"\(limited to 49%\) HIGHLY QUALIFIED QUALIFIED NOT QUALIFIED b. "
-)
-
-NEXT_ASSIGNMENT_PREFIX = (
-    "d. List 3 future SUCCESSIVE assignments for which this Officer is best suited: "
-)
-
-
-def get_senior_rater_comments(pages):
-    for element in pages[1]["elements"]:
-        if re.search(SENIOR_RATER_PREFIX, element["text"]):
-            raw_comments = clean_prefix(element["text"], SENIOR_RATER_PREFIX)
-
-            sr_rater_comments = extract_text_before(
-                raw_comments, NEXT_ASSIGNMENT_PREFIX
-            )
-            sr_rater_comments = clean_postfix(sr_rater_comments, BLOCK_TITLE_PATTTERN)
-
-            next_assigments = extract_text_after(raw_comments, NEXT_ASSIGNMENT_PREFIX)
-
-            return {
-                "comments": sr_rater_comments,
-                "next_assignment": next_assigments.split(";"),
-            }
-
-    return dict()
 
 
 def structure_oer(pages):

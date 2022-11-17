@@ -159,14 +159,16 @@ def structure_oer(pages):
     duty_description = first_page[0]["text"]
     duty_description = clean_prefix(duty_description, BLOCK_TITLE_PATTTERN)
     structured_oer["duty_description"] = clean_extra_whitespace(duty_description)
-    structured_oer["rater_comments"] = first_page[-1]["text"]
-    structured_oer["rater_sections"] = get_rater_sections(pages)
-    structured_oer["senior_rater_comments"] = get_senior_rater_comments(pages)
+    structured_oer["rater"] = {
+        "comments": first_page[-1]["text"],
+        "sections": get_rater_sections(pages),
+    }
+    structured_oer["senior_rater"] = get_senior_rater_comments(pages)
 
     second_page = [
         element for element in pages[1]["elements"] if element["type"] == "Text"
     ]
-    structured_oer["intermediate_rater"] = second_page[-2]["text"]
+    structured_oer["intermediate_rater"] = {"comments": second_page[-2]["text"]}
 
     return structured_oer
 
@@ -262,9 +264,13 @@ def pipeline_api(
     )["pages"]
 
     checkbox = structure_checkboxes(checkbox_pages)
-    out = {**narrative, **checkbox}
+    for key in ["referred", "comments", "supplementary_review", "performance"]:
+        if "rater" in narrative and key in checkbox:
+            narrative["rater"][key] = checkbox[key]
+    if "senior_rater" in narrative and "potential" in checkbox:
+        narrative["senior_rater"]["potential"] = checkbox["potential"]
 
-    return out
+    return narrative
 
 
 import json

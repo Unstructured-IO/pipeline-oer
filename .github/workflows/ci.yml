@@ -23,7 +23,6 @@ jobs:
     - name: Setup virtual environment (no cache hit)
       if: steps.virtualenv-cache.outputs.cache-hit != 'true'
       run: |
-        sudo add-apt-repository ppa:deadsnakes/ppa
         sudo apt-get update
         sudo apt-get install python${{ env.PYTHON_VERSION }}
         python${{ env.PYTHON_VERSION }} -m venv .venv

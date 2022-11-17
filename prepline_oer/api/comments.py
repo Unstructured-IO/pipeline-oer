@@ -20,7 +20,7 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 RATE_LIMIT = os.environ.get("PIPELINE_API_RATE_LIMIT", "1/second")
 
 # pipeline-api
-VALID_MODES = ["prod", "local", "dev"]
+VALID_MODES = ["prod", "local"]
 
 
 def get_layout_url(inference_mode: str = "prod"):
@@ -31,8 +31,6 @@ def get_layout_url(inference_mode: str = "prod"):
         return "https://ml.unstructured.io/layout/pdf"
     elif inference_mode == "local":
         return "http://localhost:8000/layout/pdf"
-    elif inference_mode == "dev":
-        return "https://dev.ml.unstructured.io/layout/pdf"
 
 
 import requests

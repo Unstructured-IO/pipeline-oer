@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 env:
-  PYTHON_VERSION: 3.8
+  PYTHON_VERSION: 3
 
 jobs:
   setup:
@@ -23,10 +23,6 @@ jobs:
     - name: Setup virtual environment (no cache hit)
       if: steps.virtualenv-cache.outputs.cache-hit != 'true'
       run: |
-        sudo apt update && sudo apt upgrade
-        sudo apt install software-properties-common
-        sudo add-apt-repository ppa:deadsnakes/ppa
-        sudo apt install python${{ env.PYTHON_VERSION }}
         python${{ env.PYTHON_VERSION }} -m venv .venv
         source .venv/bin/activate
         make install

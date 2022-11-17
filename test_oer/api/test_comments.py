@@ -33,6 +33,7 @@ def fake_structured_oer():
             "next_assignment": ["Battalion FDO", " Battalion AS3", " Battalion S4"],
         },
         "intermediate_rater": "1LT X is #2 of the 20 Lieutenants I intermediate rated. He is an asset for the future and will progress further in his military career. Keep assigning him to demanding position and select him for the Military Police Captains Career Course now. Promote ahead of peers to Captain and select him for the next Company Command.",  # noqa: E501
+        "referred": "No",
     }
 
 

@@ -19,8 +19,7 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 RATE_LIMIT = os.environ.get("PIPELINE_API_RATE_LIMIT", "1/second")
 
-# pipeline-api
-VALID_MODES = ["prod", "local"]
+VALID_MODES = ["prod", "local", "dev"]
 
 
 def get_layout_url(inference_mode: str = "prod"):
@@ -31,6 +30,8 @@ def get_layout_url(inference_mode: str = "prod"):
         return "https://ml.unstructured.io/layout/pdf"
     elif inference_mode == "local":
         return "http://localhost:8000/layout/pdf"
+    elif inference_mode == "dev":
+        return "https://dev.ml.unstructured.io/layout/pdf"
 
 
 import requests
@@ -42,12 +43,16 @@ def partition_oer(
     file_content_type=None,
     include_elems=["Text", "Title", "Table"],
     inference_mode: str = "prod",
+    model=None,
 ):
     url = get_layout_url(inference_mode)
+    if model is None:
+        data = {"include_elems": include_elems}
+    else:
+        data = {"model": model}
+    file.seek(0)
     response = requests.post(
-        url,
-        files={"file": (filename, file, file_content_type)},
-        data={"include_elems": include_elems},
+        url, files={"file": (filename, file, file_content_type)}, data=data
     )
     partition_result = json.loads(response.content.decode("utf-8"))
     return partition_result
@@ -60,6 +65,8 @@ from unstructured.cleaners.core import clean_prefix, clean_extra_whitespace
 BLOCK_TITLE_PATTTERN = (
     r"c. (SIGNIFICANT DUTIES AND RESPONSIBILITIES|COMMENTS ON POTENTIAL):?"
 )
+
+
 from unstructured.cleaners.core import clean_postfix
 from unstructured.cleaners.extract import extract_text_after, extract_text_before
 
@@ -167,6 +174,65 @@ def structure_oer(pages):
     return structured_oer
 
 
+box_centers = [
+    {
+        (56.905, 360.375): ("referred", "Referred"),
+        (132.379, 360.375): ("comments", "Yes, comments are attached"),
+        (244.392, 360.375): ("comments", "No"),
+        (153.943, 382.075): ("supplementary_review", "Yes"),
+        (189.284, 382.075): ("supplementary_review", "No"),
+        (367.786, 674.25): ("completed_form_received", "Yes"),
+        (397.736, 674.25): ("completed_form_received", "No"),
+        (80.266, 697.5): ("performance", "EXCELS"),
+        (177.304, 697.5): ("performance", "PROFICIENT"),
+        (274.342, 697.5): ("performance", "CAPABLE"),
+        (371.979, 697.5): ("performance", "UNSATISFACTORY"),
+    },
+    {
+        (46.123, 577.375): ("potential", "MOST QUALIFIED"),
+        (46.123, 609.15): ("potential", "HIGHLY QUALIFIED"),
+        (46.123, 642.475): ("potential", "QUALIFIED"),
+        (46.123, 674.25): ("potential", "NOT QUALIFIED"),
+    },
+]
+
+
+def point_in_box(point, box):
+    x1, y1 = box[0]
+    x2, y2 = box[2]
+    x, y = point
+    return (x1 <= x <= x2) and (y1 <= y <= y2)
+
+
+def structure_checkboxes(checkbox_pages):
+    """Creates a dictionary with the information extracted from the checkboxes"""
+    if len(checkbox_pages) < 2:
+        raise ValueError(f"Pages length is {len(checkbox_pages)}. " "Expected 2 pages.")
+    checkbox_indicator = dict()
+    for page, centers in zip(checkbox_pages, box_centers):
+        for box in page["elements"]:
+            for center, (category, text) in centers.items():
+                if point_in_box(center, box["coordinates"]):
+                    if category not in checkbox_indicator:
+                        checkbox_indicator[category] = {}
+                    checkbox_indicator[category][text] = box["type"] == "Checked"
+
+    structured_checkboxes = dict()
+    for category, boxes in checkbox_indicator.items():
+        if category != "referred":
+            for text, checked in boxes.items():
+                if checked:
+                    if category in structured_checkboxes:
+                        del structured_checkboxes[category]
+                        break
+                    structured_checkboxes[category] = text
+    structured_checkboxes["referred"] = (
+        "Yes" if checkbox_indicator["referred"]["Referred"] else "No"
+    )
+
+    return structured_checkboxes
+
+
 def pipeline_api(
     file,
     file_content_type=None,
@@ -188,7 +254,20 @@ def pipeline_api(
         inference_mode=inference_mode,
     )["pages"]
 
-    return structure_oer(pages)
+    narrative = structure_oer(pages)
+
+    checkbox_pages = partition_oer(
+        file,
+        filename,
+        file_content_type=file_content_type,
+        inference_mode=inference_mode,
+        model="checkbox",
+    )["pages"]
+
+    checkbox = structure_checkboxes(checkbox_pages)
+    out = {**narrative, **checkbox}
+
+    return out
 
 
 import json

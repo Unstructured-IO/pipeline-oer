@@ -42,12 +42,16 @@ def partition_oer(
     file_content_type=None,
     include_elems=["Text", "Title", "Table"],
     inference_mode: str = "prod",
+    model=None,
 ):
     url = get_layout_url(inference_mode)
+    if model is None:
+        data = {"include_elems": include_elems}
+    else:
+        data = {"model": model}
+    file.seek(0)
     response = requests.post(
-        url,
-        files={"file": (filename, file, file_content_type)},
-        data={"include_elems": include_elems},
+        url, files={"file": (filename, file, file_content_type)}, data=data
     )
     partition_result = json.loads(response.content.decode("utf-8"))
     return partition_result
@@ -155,16 +159,77 @@ def structure_oer(pages):
     duty_description = first_page[0]["text"]
     duty_description = clean_prefix(duty_description, BLOCK_TITLE_PATTTERN)
     structured_oer["duty_description"] = clean_extra_whitespace(duty_description)
-    structured_oer["rater_comments"] = first_page[-1]["text"]
-    structured_oer["rater_sections"] = get_rater_sections(pages)
-    structured_oer["senior_rater_comments"] = get_senior_rater_comments(pages)
+    structured_oer["rater"] = {
+        "comments": first_page[-1]["text"],
+        "sections": get_rater_sections(pages),
+    }
+    structured_oer["senior_rater"] = get_senior_rater_comments(pages)
 
     second_page = [
         element for element in pages[1]["elements"] if element["type"] == "Text"
     ]
-    structured_oer["intermediate_rater"] = second_page[-2]["text"]
+    structured_oer["intermediate_rater"] = {"comments": second_page[-2]["text"]}
 
     return structured_oer
+
+
+box_centers = [
+    {
+        (56.905, 360.375): ("referred", "Referred"),
+        (132.379, 360.375): ("comments", "Yes, comments are attached"),
+        (244.392, 360.375): ("comments", "No"),
+        (153.943, 382.075): ("supplementary_review", "Yes"),
+        (189.284, 382.075): ("supplementary_review", "No"),
+        (367.786, 674.25): ("completed_form_received", "Yes"),
+        (397.736, 674.25): ("completed_form_received", "No"),
+        (80.266, 697.5): ("performance", "EXCELS"),
+        (177.304, 697.5): ("performance", "PROFICIENT"),
+        (274.342, 697.5): ("performance", "CAPABLE"),
+        (371.979, 697.5): ("performance", "UNSATISFACTORY"),
+    },
+    {
+        (46.123, 577.375): ("potential", "MOST QUALIFIED"),
+        (46.123, 609.15): ("potential", "HIGHLY QUALIFIED"),
+        (46.123, 642.475): ("potential", "QUALIFIED"),
+        (46.123, 674.25): ("potential", "NOT QUALIFIED"),
+    },
+]
+
+
+def point_in_box(point, box):
+    x1, y1 = box[0]
+    x2, y2 = box[2]
+    x, y = point
+    return (x1 <= x <= x2) and (y1 <= y <= y2)
+
+
+def structure_checkboxes(checkbox_pages):
+    """Creates a dictionary with the information extracted from the checkboxes"""
+    if len(checkbox_pages) < 2:
+        raise ValueError(f"Pages length is {len(checkbox_pages)}. " "Expected 2 pages.")
+    checkbox_indicator = dict()
+    for page, centers in zip(checkbox_pages, box_centers):
+        for box in page["elements"]:
+            for center, (category, text) in centers.items():
+                if point_in_box(center, box["coordinates"]):
+                    if category not in checkbox_indicator:
+                        checkbox_indicator[category] = {}
+                    checkbox_indicator[category][text] = box["type"] == "Checked"
+
+    structured_checkboxes = dict()
+    for category, boxes in checkbox_indicator.items():
+        if category != "referred":
+            for text, checked in boxes.items():
+                if checked:
+                    if category in structured_checkboxes:
+                        del structured_checkboxes[category]
+                        break
+                    structured_checkboxes[category] = text
+    structured_checkboxes["referred"] = (
+        "Yes" if checkbox_indicator["referred"]["Referred"] else "No"
+    )
+
+    return structured_checkboxes
 
 
 def pipeline_api(
@@ -188,7 +253,24 @@ def pipeline_api(
         inference_mode=inference_mode,
     )["pages"]
 
-    return structure_oer(pages)
+    narrative = structure_oer(pages)
+
+    checkbox_pages = partition_oer(
+        file,
+        filename,
+        file_content_type=file_content_type,
+        inference_mode=inference_mode,
+        model="checkbox",
+    )["pages"]
+
+    checkbox = structure_checkboxes(checkbox_pages)
+    for key in ["referred", "comments", "supplementary_review", "performance"]:
+        if "rater" in narrative and key in checkbox:
+            narrative["rater"][key] = checkbox[key]
+    if "senior_rater" in narrative and "potential" in checkbox:
+        narrative["senior_rater"]["potential"] = checkbox["potential"]
+
+    return narrative
 
 
 import json
@@ -257,7 +339,7 @@ class MultipartMixedResponse(StreamingResponse):
         await send({"type": "http.response.body", "body": b"", "more_body": False})
 
 
-@app.post("/oer/v0.0.1/comments")
+@app.post("/oer/v0.0.1/raters")
 @limiter.limit(RATE_LIMIT)
 async def pipeline_1(
     request: Request,

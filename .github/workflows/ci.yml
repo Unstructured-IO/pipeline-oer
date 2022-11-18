@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 env:
-  PYTHON_VERSION: 3.8
+  PYTHON_VERSION: "3.8"
 
 jobs:
   setup:
@@ -20,6 +20,10 @@ jobs:
         path: |
           .venv
         key: ci-venv-oer-${{ hashFiles('requirements/*.txt') }}
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
     - name: Setup virtual environment (no cache hit)
       if: steps.virtualenv-cache.outputs.cache-hit != 'true'
       run: |

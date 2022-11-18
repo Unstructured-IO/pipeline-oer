@@ -4,7 +4,7 @@ import pytest
 import json
 from fastapi.testclient import TestClient
 
-from prepline_oer.api.comments import app, structure_oer
+from prepline_oer.api.raters import app, structure_oer
 from unstructured_api_tools.pipelines.api_conventions import get_pipeline_path
 
 DIRECTORY = Path(__file__).absolute().parent
@@ -12,7 +12,7 @@ DIRECTORY = Path(__file__).absolute().parent
 SAMPLE_DOCS_DIRECTORY = os.path.join(DIRECTORY, "..", "..", "sample-docs")
 
 
-COMMENTS_ROUTE = get_pipeline_path("comments", pipeline_family="oer", semver="0.0.1")
+COMMENTS_ROUTE = get_pipeline_path("raters", pipeline_family="oer", semver="0.0.1")
 
 
 @pytest.fixture

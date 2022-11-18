@@ -339,7 +339,7 @@ class MultipartMixedResponse(StreamingResponse):
         await send({"type": "http.response.body", "body": b"", "more_body": False})
 
 
-@app.post("/oer/v0.0.1/comments")
+@app.post("/oer/v0.0.1/raters")
 @limiter.limit(RATE_LIMIT)
 async def pipeline_1(
     request: Request,

@@ -83,7 +83,7 @@ You can also run the extraction code with Python directly using the following co
 from the `pipeline-oer` directory:
 
 ```python
-from prepline_oer.api.comments import pipeline_api
+from prepline_oer.api.raters import pipeline_api
 
 filename = "sample-docs/fake-oer.pdf"
 

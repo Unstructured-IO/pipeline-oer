@@ -33,7 +33,7 @@ The API is hosted at `https://api.unstructured.io`.
 After API starts, you can extract the elements of OER files with the command:
 ```
 curl -X 'POST' \
-  'http://localhost:8000/oer/v0.0.1/comments' \
+  'http://localhost:8000/oer/v0.0.1/raters' \
   -F 'files=@<your_oer_pdf_file>' \
   | jq -C . | less -R
 ```
@@ -42,7 +42,7 @@ Using the example fake OER in the `sample-docs` folder, you can run:
 
 ```
 curl -X 'POST' \
-  'http://localhost:8000/oer/v0.0.1/comments' \
+  'http://localhost:8000/oer/v0.0.1/raters' \
     -F 'files=@fake-oer.pdf' | jq -C | less -R
 ```
 
@@ -103,7 +103,7 @@ with open(filename, "rb") as f:
 
 ```
 curl -X 'POST' \
-  'http://127.0.0.1:5000/oer/v0.0.1/comments' \
+  'http://127.0.0.1:5000/oer/v0.0.1/raters' \
   -H 'accept: application/json' \
   -H 'Content-Type: multipart/form-data' \
   -F 'files=@fake-oer.pdf;type=application/pdf' \
@@ -113,7 +113,7 @@ curl -X 'POST' \
 You can make the same call directly in Python with
 
 ```python
-from prepline_oer.api.comments import pipeline_api
+from prepline_oer.api.raters import pipeline_api
 
 filename = "sample-docs/fake-oer.pdf"
 

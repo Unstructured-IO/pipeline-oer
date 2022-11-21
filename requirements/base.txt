@@ -153,7 +153,7 @@ typing-extensions==4.3.0
     #   pydantic
 unstructured==0.2.5
     # via -r base.in
-unstructured-api-tools==0.4.3
+unstructured-api-tools==0.4.5
     # via -r base.in
 urllib3==1.26.12
     # via requests

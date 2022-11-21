@@ -6,7 +6,7 @@
 import os
 from typing import List, Union
 
-from fastapi import status, FastAPI, File, Form, Request, UploadFile
+from fastapi import status, FastAPI, File, Form, Request, UploadFile, APIRouter
 from slowapi.errors import RateLimitExceeded
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -16,8 +16,10 @@ limiter = Limiter(key_func=get_remote_address)
 app = FastAPI()
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+router = APIRouter()
 
 RATE_LIMIT = os.environ.get("PIPELINE_API_RATE_LIMIT", "1/second")
+
 
 # pipeline-api
 VALID_MODES = ["prod", "local"]
@@ -339,7 +341,7 @@ class MultipartMixedResponse(StreamingResponse):
         await send({"type": "http.response.body", "body": b"", "more_body": False})
 
 
-@app.post("/oer/v0.0.1/raters")
+@router.post("/oer/v0.0.1/raters")
 @limiter.limit(RATE_LIMIT)
 async def pipeline_1(
     request: Request,
@@ -401,3 +403,6 @@ async def pipeline_1(
 @app.get("/healthcheck", status_code=status.HTTP_200_OK)
 async def healthcheck(request: Request):
     return {"healthcheck": "HEALTHCHECK STATUS: EVERYTHING OK!"}
+
+
+app.include_router(router)

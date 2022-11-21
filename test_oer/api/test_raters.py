@@ -5,6 +5,7 @@ import json
 from fastapi.testclient import TestClient
 
 from prepline_oer.api.raters import app, structure_oer
+import prepline_oer.api.raters as raters
 from unstructured_api_tools.pipelines.api_conventions import get_pipeline_path
 
 DIRECTORY = Path(__file__).absolute().parent
@@ -124,3 +125,21 @@ def test_section_narrative_api_health_check():
     response = client.get("/healthcheck")
 
     assert response.status_code == 200
+
+
+def test_get_layout_url_raises_with_bad_mode():
+    with pytest.raises(ValueError):
+        raters.get_layout_url("fake")
+
+
+def test_get_layout_url_local():
+    assert raters.get_layout_url("local") == "http://localhost:8000/layout/pdf"
+
+
+def test_get_layout_url_prod():
+    assert raters.get_layout_url("prod") == "https://ml.unstructured.io/layout/pdf"
+
+
+def test_get_senior_rater_comments_with_empty_elements():
+    pages = [{"elements": []}, {"elements": []}]
+    assert raters.get_senior_rater_comments(pages) == dict()

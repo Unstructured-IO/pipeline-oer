@@ -52,7 +52,9 @@ def partition_oer(
     else:
         data = {"model": model}
     file.seek(0)
-    response = requests.post(url, files={"file": (filename, file, file_content_type)}, data=data)
+    response = requests.post(
+        url, files={"file": (filename, file, file_content_type)}, data=data
+    )
     partition_result = json.loads(response.content.decode("utf-8"))
     return partition_result
 
@@ -61,7 +63,9 @@ import re
 
 from unstructured.cleaners.core import clean_prefix, clean_extra_whitespace
 
-BLOCK_TITLE_PATTTERN = r"c. (SIGNIFICANT DUTIES AND RESPONSIBILITIES|COMMENTS ON POTENTIAL):?"
+BLOCK_TITLE_PATTTERN = (
+    r"c. (SIGNIFICANT DUTIES AND RESPONSIBILITIES|COMMENTS ON POTENTIAL):?"
+)
 from unstructured.cleaners.core import clean_postfix
 from unstructured.cleaners.extract import extract_text_after, extract_text_before
 
@@ -82,7 +86,9 @@ def get_senior_rater_comments(pages):
         if re.search(SENIOR_RATER_PREFIX, element["text"]):
             raw_comments = clean_prefix(element["text"], SENIOR_RATER_PREFIX)
 
-            sr_rater_comments = extract_text_before(raw_comments, NEXT_ASSIGNMENT_PREFIX)
+            sr_rater_comments = extract_text_before(
+                raw_comments, NEXT_ASSIGNMENT_PREFIX
+            )
             sr_rater_comments = clean_postfix(sr_rater_comments, BLOCK_TITLE_PATTTERN)
 
             next_assigments = extract_text_after(raw_comments, NEXT_ASSIGNMENT_PREFIX)
@@ -120,7 +126,9 @@ def get_rater_sections(pages):
     rater_sections = dict()
     for element in pages[1]["elements"]:
         if re.search(SECTION_PATTERN, element["text"], flags=re.IGNORECASE):
-            section_split = re.split(SECTION_PATTERN, element["text"], flags=re.IGNORECASE)
+            section_split = re.split(
+                SECTION_PATTERN, element["text"], flags=re.IGNORECASE
+            )
             for chunk in section_split:
                 for key, description in DESCRIPTIONS.items():
                     if description in chunk:
@@ -140,7 +148,9 @@ def structure_oer(pages):
 
     structured_oer = dict()
 
-    first_page = [element for element in pages[0]["elements"] if element["type"] == "Text"]
+    first_page = [
+        element for element in pages[0]["elements"] if element["type"] == "Text"
+    ]
     if len(first_page) < 2:
         raise ValueError(
             f"Number of narrative text elements on the "
@@ -157,7 +167,9 @@ def structure_oer(pages):
     }
     structured_oer["senior_rater"] = get_senior_rater_comments(pages)
 
-    second_page = [element for element in pages[1]["elements"] if element["type"] == "Text"]
+    second_page = [
+        element for element in pages[1]["elements"] if element["type"] == "Text"
+    ]
     structured_oer["intermediate_rater"] = {"comments": second_page[-2]["text"]}
 
     return structured_oer

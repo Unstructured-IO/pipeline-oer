@@ -6,3 +6,6 @@ nbdev
 pip-tools
 # NOTE(crag): consistency with unstructured-api-tools. pinned for a reason, see there.
 ipython==8.7.0
+
+# NOTE(robinson) - Required pins for security scans
+jupyter-core>=4.11.2

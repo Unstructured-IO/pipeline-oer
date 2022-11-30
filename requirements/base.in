@@ -3,3 +3,6 @@ unstructured_api_tools==0.4.6
 
 ratelimit
 requests
+
+# NOTE(robinson) - Required pins for security scans
+jupyter-core>=4.11.2

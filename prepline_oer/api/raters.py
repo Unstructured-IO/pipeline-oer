@@ -350,6 +350,9 @@ async def pipeline_1(
 ):
     content_type = request.headers.get("Accept")
 
+    expanded_files = [f for f in files]
+
+
     if isinstance(files, list) and len(files):
         if len(files) > 1:
             if content_type and content_type not in ["*/*", "multipart/mixed"]:
@@ -362,7 +365,7 @@ async def pipeline_1(
                 )
 
             def response_generator():
-                for file in files:
+                for file in expanded_files:
 
                     _file = file.file
 
@@ -381,15 +384,24 @@ async def pipeline_1(
             )
         else:
 
-            file = files[0]
-            _file = file.file
-
-            response = pipeline_api(
-                _file,
-                m_inference_mode=inference_mode,
-                filename=file.filename,
-                file_content_type=file.content_type,
+            from unstructured_api_tools.compression import (
+                is_tarfile, process_tarred_files, is_zipfile, process_zipped_files
             )
+
+            file = expanded_files[0]
+            if is_tarfile(file):
+                response = process_tarred_files(file, pipeline_api, {"m_inference_mode": inference_mode})
+            elif is_zipfile(file):
+                response = process_zipped_files(file, pipeline_api, {"m_inference_mode": inference_mode})
+            else:
+                _file = file.file
+
+                response = pipeline_api(
+                    _file,
+                    m_inference_mode=inference_mode,
+                    filename=file.filename,
+                    file_content_type=file.content_type,
+                )
 
             return response
 

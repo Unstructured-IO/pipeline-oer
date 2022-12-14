@@ -93,10 +93,10 @@ with open(filename, "rb") as f:
 
 #### Running Inferences Locally
 
-- Clone the `ml-inference` repo with `git clone https://github.com/Unstructured-IO/ml-inference`. The
-  `ml-inference` repo is not yet public. If you are a beta test, ask an Unstructured team member
+- Clone the `unstructured-inference` repo with `git clone https://github.com/Unstructured-IO/unstructured-inference`. The
+  `unstructured-inference` repo is not yet public. If you are a beta tester, ask an Unstructured team member
   for access.
-- Start the `ml-inference` service by running `make run-app-dev` from the `ml-inference directory`.
+- Start the `unstructured-inference` service by running `make run-app-dev` from the `unstructured-inference` directory.
 - Start the OER pipeline API with `UVICORN_PORT=5000 make run-web-app`. The `UVICORN_PORT` variable
   is to deconflict ports with the inference service.
 - Make the following API call from the `sample-docs` directory

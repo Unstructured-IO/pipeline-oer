@@ -3,14 +3,28 @@
 # DO NOT MODIFY DIRECTLY
 #####################################################################
 
+from functools import partial
 import os
 from typing import List, Union
-
 from fastapi import status, FastAPI, File, Form, Request, UploadFile, APIRouter
 from slowapi.errors import RateLimitExceeded
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from fastapi.responses import PlainTextResponse
+import json
+from fastapi.responses import StreamingResponse
+from starlette.types import Send
+from base64 import b64encode
+from typing import Optional, Mapping, Iterator, Tuple
+import secrets
+import unstructured_api_tools.compression as compression
+import requests
+import re
+from unstructured.cleaners.core import clean_prefix, clean_extra_whitespace
+from unstructured.cleaners.core import clean_postfix
+from unstructured.cleaners.extract import extract_text_after, extract_text_before
+from unstructured.cleaners.core import replace_unicode_quotes
+
 
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI()
@@ -35,9 +49,6 @@ def get_layout_url(inference_mode: str = "prod"):
         return "http://localhost:8000/layout/pdf"
 
 
-import requests
-
-
 def partition_oer(
     file,
     filename,
@@ -59,15 +70,9 @@ def partition_oer(
     return partition_result
 
 
-import re
-
-from unstructured.cleaners.core import clean_prefix, clean_extra_whitespace
-
 BLOCK_TITLE_PATTTERN = (
     r"c. (SIGNIFICANT DUTIES AND RESPONSIBILITIES|COMMENTS ON POTENTIAL):?"
 )
-from unstructured.cleaners.core import clean_postfix
-from unstructured.cleaners.extract import extract_text_after, extract_text_before
 
 
 SENIOR_RATER_PREFIX = (
@@ -100,8 +105,6 @@ def get_senior_rater_comments(pages):
 
     return dict()
 
-
-from unstructured.cleaners.core import replace_unicode_quotes
 
 DESCRIPTIONS = {
     "character": "Adherence to Army Values, Empathy, and Warrior Ethos/Service Ethos"
@@ -275,14 +278,6 @@ def pipeline_api(
     return narrative
 
 
-import json
-from fastapi.responses import StreamingResponse
-from starlette.types import Send
-from base64 import b64encode
-from typing import Optional, Mapping, Iterator, Tuple
-import secrets
-
-
 class MultipartMixedResponse(StreamingResponse):
     CRLF = b"\r\n"
 
@@ -380,16 +375,22 @@ async def pipeline_1(
                 response_generator(),
             )
         else:
+            _pipeline_api = partial(
+                pipeline_api,
+                m_inference_mode=inference_mode,
+            )
 
             file = files[0]
             _file = file.file
 
-            response = pipeline_api(
-                _file,
-                m_inference_mode=inference_mode,
-                filename=file.filename,
-                file_content_type=file.content_type,
-            )
+            if compression.is_tarfile(file):
+                response = compression.process_tarred_files(file, _pipeline_api)
+            elif compression.is_zipfile(file):
+                response = compression.process_zipped_files(file, _pipeline_api)
+            else:
+                response = _pipeline_api(
+                    _file, filename=file.filename, file_content_type=file.content_type
+                )
 
             return response
 

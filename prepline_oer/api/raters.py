@@ -3,7 +3,6 @@
 # DO NOT MODIFY DIRECTLY
 #####################################################################
 
-from functools import partial
 import os
 from typing import List, Union
 from fastapi import status, FastAPI, File, Form, Request, UploadFile, APIRouter
@@ -17,7 +16,6 @@ from starlette.types import Send
 from base64 import b64encode
 from typing import Optional, Mapping, Iterator, Tuple
 import secrets
-import unstructured_api_tools.compression as compression
 import requests
 import re
 from unstructured.cleaners.core import clean_prefix, clean_extra_whitespace
@@ -375,22 +373,16 @@ async def pipeline_1(
                 response_generator(),
             )
         else:
-            _pipeline_api = partial(
-                pipeline_api,
-                m_inference_mode=inference_mode,
-            )
 
             file = files[0]
             _file = file.file
 
-            if compression.is_tarfile(file):
-                response = compression.process_tarred_files(file, _pipeline_api)
-            elif compression.is_zipfile(file):
-                response = compression.process_zipped_files(file, _pipeline_api)
-            else:
-                response = _pipeline_api(
-                    _file, filename=file.filename, file_content_type=file.content_type
-                )
+            response = pipeline_api(
+                _file,
+                m_inference_mode=inference_mode,
+                filename=file.filename,
+                file_content_type=file.content_type,
+            )
 
             return response
 

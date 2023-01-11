@@ -16,7 +16,10 @@ from starlette.types import Send
 from base64 import b64encode
 from typing import Optional, Mapping, Iterator, Tuple
 import secrets
-import requests
+from unstructured_inference.inference.layout import (
+    process_data_with_model,
+    process_file_with_model,
+)
 import re
 from unstructured.cleaners.core import clean_prefix, clean_extra_whitespace
 from unstructured.cleaners.core import clean_postfix
@@ -34,38 +37,19 @@ RATE_LIMIT = os.environ.get("PIPELINE_API_RATE_LIMIT", "1/second")
 
 
 # pipeline-api
-VALID_MODES = ["prod", "local"]
 
 
-def get_layout_url(inference_mode: str = "prod"):
-    if inference_mode not in VALID_MODES:
-        raise ValueError(f"Invalid mode. Valid modes are {VALID_MODES}")
-
-    if inference_mode == "prod":
-        return "https://ml.unstructured.io/layout/pdf"
-    elif inference_mode == "local":
-        return "http://localhost:8000/layout/pdf"
-
-
-def partition_oer(
-    file,
-    filename,
-    file_content_type=None,
-    include_elems=["Text", "Title", "Table"],
-    inference_mode: str = "prod",
-    model=None,
-):
-    url = get_layout_url(inference_mode)
-    if model is None:
-        data = {"include_elems": include_elems}
-    else:
-        data = {"model": model}
-    file.seek(0)
-    response = requests.post(
-        url, files={"file": (filename, file, file_content_type)}, data=data
+def partition_oer(filename="", file=None, model=None):
+    layout = (
+        process_file_with_model(filename, model)
+        if file is None
+        else process_data_with_model(file, model)
     )
-    partition_result = json.loads(response.content.decode("utf-8"))
-    return partition_result
+
+    pages = []
+    for page in layout.pages:
+        pages.append({"elements": [el.to_dict() for el in page.elements]})
+    return {"pages": pages}
 
 
 BLOCK_TITLE_PATTTERN = (
@@ -239,32 +223,12 @@ def pipeline_api(
     file,
     file_content_type=None,
     filename=None,
-    m_inference_mode=[],
 ):
-    if len(m_inference_mode) > 1:
-        raise ValueError("Only one value for mode can be passed.")
-
-    if len(m_inference_mode) == 1:
-        inference_mode = m_inference_mode[0]
-    else:
-        inference_mode = "prod"
-
-    pages = partition_oer(
-        file,
-        filename,
-        file_content_type=file_content_type,
-        inference_mode=inference_mode,
-    )["pages"]
-
+    pages = partition_oer(file=file)["pages"]
     narrative = structure_oer(pages)
 
-    checkbox_pages = partition_oer(
-        file,
-        filename,
-        file_content_type=file_content_type,
-        inference_mode=inference_mode,
-        model="checkbox",
-    )["pages"]
+    file.seek(0)
+    checkbox_pages = partition_oer(file=file, model="checkbox")["pages"]
 
     checkbox = structure_checkboxes(checkbox_pages)
     for key in ["referred", "comments", "supplementary_review", "performance"]:
@@ -339,7 +303,6 @@ class MultipartMixedResponse(StreamingResponse):
 async def pipeline_1(
     request: Request,
     files: Union[List[UploadFile], None] = File(default=None),
-    inference_mode: List[str] = Form(default=[]),
 ):
     content_type = request.headers.get("Accept")
 
@@ -361,7 +324,6 @@ async def pipeline_1(
 
                     response = pipeline_api(
                         _file,
-                        m_inference_mode=inference_mode,
                         filename=file.filename,
                         file_content_type=file.content_type,
                     )
@@ -379,7 +341,6 @@ async def pipeline_1(
 
             response = pipeline_api(
                 _file,
-                m_inference_mode=inference_mode,
                 filename=file.filename,
                 file_content_type=file.content_type,
             )

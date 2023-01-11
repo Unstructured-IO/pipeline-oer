@@ -36,9 +36,6 @@ router = APIRouter()
 RATE_LIMIT = os.environ.get("PIPELINE_API_RATE_LIMIT", "1/second")
 
 
-# pipeline-api
-
-
 def partition_oer(filename="", file=None, model=None):
     layout = (
         process_file_with_model(filename, model)

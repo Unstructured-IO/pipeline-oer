@@ -45,6 +45,7 @@ jobs:
     - name: Lint
       run: |
         source .venv/bin/activate
+        make install-test
         make check
 
   shellcheck:

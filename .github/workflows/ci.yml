@@ -73,7 +73,7 @@ jobs:
         make test
         make check-coverage
         cp pipeline-notebooks/pipeline-raters.ipynb pipeline-notebooks/pipeline-raters-orig.ipynb
-        ./scripts/check-and-format-notebooks
+        ./scripts/check-and-format-notebooks.sh
         diff pipeline-notebooks/pipeline-raters.ipynb pipeline-notebooks/pipeline-raters-orig.ipynb
         make check-notebooks
 

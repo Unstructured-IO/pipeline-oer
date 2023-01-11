@@ -70,9 +70,11 @@ jobs:
       run: |
         source .venv/bin/activate
         sudo apt-get install --yes poppler-utils
-        make install-test
         make test
         make check-coverage
+        cp pipeline-notebooks/pipeline-raters.ipynb pipeline-notebooks/pipeline-raters-orig.ipynb
+        ./scripts/check-and-format-notebooks
+        diff pipeline-notebooks/pipeline-raters.ipynb pipeline-notebooks/pipeline-raters-orig.ipynb
         make check-notebooks
 
   changelog:

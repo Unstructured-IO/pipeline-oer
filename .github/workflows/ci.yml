@@ -73,9 +73,9 @@ jobs:
         sudo apt-get install --yes poppler-utils
         # make test
         # make check-coverage
-        cp pipeline-notebooks/pipeline-raters.ipynb pipeline-notebooks/pipeline-raters-orig.ipynb
+        cp pipeline-notebooks/pipeline-raters.ipynb pipeline-raters-orig.ipynb
         ./scripts/check-and-format-notebooks.py
-        diff pipeline-notebooks/pipeline-raters.ipynb pipeline-notebooks/pipeline-raters-orig.ipynb
+        diff pipeline-notebooks/pipeline-raters.ipynb pipeline-raters-orig.ipynb
         make check-notebooks
 
   changelog:

@@ -160,8 +160,8 @@ omegaconf==2.3.0
     # via effdet
 opencv-python==4.6.0.66
     # via
-    #   -r requirements/base.in
     #   layoutparser
+    #   unstructured-inference
 openpyxl==3.0.10
     # via unstructured
 packaging==21.3
@@ -323,11 +323,11 @@ typing-extensions==4.3.0
     #   starlette
     #   torch
     #   torchvision
-unstructured[local-inference]==0.4.0
+unstructured[local-inference]==0.4.1
     # via -r requirements/base.in
 unstructured-api-tools==0.4.7
     # via -r requirements/base.in
-unstructured-inference==0.2.1
+unstructured-inference==0.2.3
     # via
     #   -r requirements/base.in
     #   unstructured

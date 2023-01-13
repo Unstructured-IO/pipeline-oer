@@ -1,4 +1,4 @@
-unstructured[local-inference]>=0.4.0
+unstructured[local-inference]>=0.4.1
 unstructured-inference>=0.2.1
 unstructured_api_tools==0.4.7
 
@@ -7,8 +7,3 @@ requests
 
 # NOTE(robinson) - Required pins for security scans
 jupyter-core>=4.11.2
-
-# NOTE(robinson) - later versions of opencv-python cause installation issues
-# on RHEL7. We can remove this pin once the following issue from 12/2022 is resolved
-# ref: https://github.com/opencv/opencv-python/issues/772
-opencv-python==4.6.0.66

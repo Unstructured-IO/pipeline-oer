@@ -255,6 +255,7 @@ requests==2.28.1
     #   -r requirements/base.in
     #   huggingface-hub
     #   torchvision
+    #   unstructured
 rfc3986[idna2008]==1.5.0
     # via httpx
 scipy==1.10.0
@@ -323,11 +324,11 @@ typing-extensions==4.3.0
     #   starlette
     #   torch
     #   torchvision
-unstructured[local-inference]==0.4.1
+unstructured[local-inference]==0.4.4
     # via -r requirements/base.in
 unstructured-api-tools==0.4.7
     # via -r requirements/base.in
-unstructured-inference==0.2.3
+unstructured-inference==0.2.4
     # via
     #   -r requirements/base.in
     #   unstructured

@@ -28,8 +28,13 @@ The API is hosted at `https://api.unstructured.io`.
 * Start a local jupyter notebook server with `make run-jupyter` <br />
 	**OR** <br />
 	just start the fast-API locally with `make run-web-app`
+	
+## Quick Tour
 
-#### Extracting Structured Text from an OER PDF document
+You can run this [Colab notebook](https://colab.research.google.com/drive/1sedVOvsg0PRV74C1TIoFxSFfrPoiH005) to see how [pipeline-raters.ipynb](/pipeline-notebooks/pipeline-raters.ipynb) extracts the the elements of OER files and defines an API.
+
+
+## Extracting Structured Text from an OER PDF document
 After API starts, you can extract the elements of OER files with the command:
 ```
 curl -X 'POST' \

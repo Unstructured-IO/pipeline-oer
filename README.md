@@ -67,7 +67,9 @@ and get the following JSON as the output:
       "character": "1LT X’s exceptional command presence and resilience lends itself to consistent mission accomplishment, good order and discipline, and a positive climate. 1LT X’s outstanding attitude and thirst for knowledge exceeds those around him which contributes to his overall exceptional character."
     },
     "referred": "No",
-    "performance": "PROFICIENT"
+    "performance": "PROFICIENT",
+    "name": "RAYMOND, BRIAN",
+    "position": "EXECUTIVE OFFICER"
   },
   "senior_rater": {
     "comments": "I currently senior rate Army Officers in this grade. 1LT X is #4 of the 44 Lieutenants I senior rated. 1LT X is an intelligent and creative Officer with the potential to progress in rank as a leader. 1LT X is ready for positions of increased responsibilities; he will excel as a Staff Officer followed by Company Command if given the opportunity. Select for Military Police Captains Career Course and promote to captain when eligible.",
@@ -76,11 +78,17 @@ and get the following JSON as the output:
       " Battalion AS3",
       " Battalion S4"
     ],
-    "potential": "HIGHLY QUALIFIED"
+    "potential": "HIGHLY QUALIFIED",
+    "name": "BERTL, ALAN",
+    "position": "BATTALION COMMANDER"
   },
   "intermediate_rater": {
-    "comments": "1LT X is #2 of the 20 Lieutenants I intermediate rated. He is an asset for the future and will progress further in his military career. Keep assigning him to demanding position and select him for the Military Police Captains Career Course now. Promote ahead of peers to Captain and select him for the next Company Command."
-  }
+    "comments": "1LT X is #2 of the 20 Lieutenants I intermediate rated. He is an asset for the future and will progress further in his military career. Keep assigning him to demanding position and select him for the Military Police Captains Career Course now. Promote ahead of peers to Captain and select him for the next Company Command.",
+    "name": "WOLFE, CRAG",
+    "position": ""
+  },
+  "rated_name": "ROBINSON, MATTHEW W",
+  "rated_position": ""
 }
 ```
 

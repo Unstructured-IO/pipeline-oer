@@ -19,10 +19,13 @@ import secrets
 from unstructured_inference.inference.layout import (
     process_data_with_model,
     process_file_with_model,
+    DocumentLayout,
 )
 import re
 from unstructured.cleaners.core import clean_prefix, clean_extra_whitespace
 from unstructured.cleaners.core import clean_postfix
+from unstructured_inference.inference.layout import TextBlock, PageLayout
+from layoutparser import Rectangle
 from unstructured.cleaners.extract import extract_text_after, extract_text_before
 from unstructured.cleaners.core import replace_unicode_quotes
 
@@ -39,13 +42,16 @@ RATE_LIMIT = os.environ.get("PIPELINE_API_RATE_LIMIT", "1/second")
 # pipeline-api
 
 
-def partition_oer(filename="", file=None, model=None):
+def get_layout(filename="", file=None, model=None):
     layout = (
         process_file_with_model(filename, model)
         if file is None
         else process_data_with_model(file, model)
     )
+    return layout
 
+
+def partition_oer(layout: DocumentLayout):
     pages = []
     for page in layout.pages:
         pages.append({"elements": [el.to_dict() for el in page.elements]})
@@ -55,6 +61,85 @@ def partition_oer(filename="", file=None, model=None):
 BLOCK_TITLE_PATTTERN = (
     r"c. (SIGNIFICANT DUTIES AND RESPONSIBILITIES|COMMENTS ON POTENTIAL):?"
 )
+
+NAME_OCR_WHITESPACE = r"\.?_*[\n\r\s]*"
+
+
+rated_loc = [
+    0.04084967320261438,
+    0.10227272727272728,
+    0.40522875816993464,
+    0.11994949494949494,
+]
+rated_position_loc = [
+    0.04084967320261438,
+    0.5782828282828283,
+    0.49019607843137253,
+    0.5909090909090909,
+]
+rater_loc = [
+    0.04084967320261438,
+    0.2196969696969697,
+    0.4852941176470588,
+    0.23737373737373738,
+]
+rater_position_loc = [
+    0.7581699346405228,
+    0.2196969696969697,
+    0.9575163398692811,
+    0.23737373737373738,
+]
+intermediate_loc = [
+    0.04084967320261438,
+    0.2828282828282828,
+    0.4852941176470588,
+    0.3005050505050505,
+]
+intermediate_position_loc = [
+    0.7581699346405228,
+    0.2828282828282828,
+    0.9575163398692811,
+    0.3005050505050505,
+]
+senior_loc = [
+    0.04084967320261438,
+    0.34595959595959597,
+    0.40522875816993464,
+    0.36363636363636365,
+]
+senior_position_loc = [
+    0.7581699346405228,
+    0.34595959595959597,
+    0.9575163398692811,
+    0.36363636363636365,
+]
+
+
+def get_field_by_ocr(page: PageLayout, loc: list):
+    height = page.image.height
+    width = page.image.width
+    multiplier = [width, height, width, height]
+    coords = [rel_coord * mult for rel_coord, mult in zip(loc, multiplier)]
+    rect = Rectangle(*coords)
+    text_block = TextBlock(rect)
+    field_contents = page.ocr(text_block)
+    field_contents = clean_postfix(field_contents, NAME_OCR_WHITESPACE)
+    return field_contents
+
+
+def get_names_and_positions(page: PageLayout):
+    loc_dict = {
+        "rated_name": rated_loc,
+        "rated_position": rated_position_loc,
+        "rater_name": rater_loc,
+        "rater_position": rater_position_loc,
+        "intermediate_name": intermediate_loc,
+        "intermediate_position": intermediate_position_loc,
+        "senior_name": senior_loc,
+        "senior_position": senior_position_loc,
+    }
+    name_dict = {name: get_field_by_ocr(page, loc) for name, loc in loc_dict.items()}
+    return name_dict
 
 
 SENIOR_RATER_PREFIX = (
@@ -224,11 +309,15 @@ def pipeline_api(
     file_content_type=None,
     filename=None,
 ):
-    pages = partition_oer(file=file)["pages"]
+    layout = get_layout(file=file)
+    pages = partition_oer(layout=layout)["pages"]
     narrative = structure_oer(pages)
 
+    name_position_dict = get_names_and_positions(layout.pages[0])
+
     file.seek(0)
-    checkbox_pages = partition_oer(file=file, model="checkbox")["pages"]
+    cb_layout = get_layout(file=file, model="checkbox")
+    checkbox_pages = partition_oer(layout=cb_layout)["pages"]
 
     checkbox = structure_checkboxes(checkbox_pages)
     for key in ["referred", "comments", "supplementary_review", "performance"]:
@@ -236,6 +325,16 @@ def pipeline_api(
             narrative["rater"][key] = checkbox[key]
     if "senior_rater" in narrative and "potential" in checkbox:
         narrative["senior_rater"]["potential"] = checkbox["potential"]
+    narrative["rated_name"] = name_position_dict["rated_name"]
+    narrative["rated_position"] = name_position_dict["rated_position"]
+    narrative["rater"]["name"] = name_position_dict["rater_name"]
+    narrative["rater"]["position"] = name_position_dict["rater_position"]
+    narrative["intermediate_rater"]["name"] = name_position_dict["intermediate_name"]
+    narrative["intermediate_rater"]["position"] = name_position_dict[
+        "intermediate_position"
+    ]
+    narrative["senior_rater"]["name"] = name_position_dict["senior_name"]
+    narrative["senior_rater"]["position"] = name_position_dict["senior_position"]
 
     return narrative
 

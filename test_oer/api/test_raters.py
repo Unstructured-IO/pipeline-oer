@@ -33,22 +33,22 @@ def fake_structured_oer():
             "referred": "No",
             "performance": "PROFICIENT",
             "name": "RAYMOND, BRIAN",
-            "position": "EXECUTIVE OFFICER"
+            "position": "EXECUTIVE OFFICER",
         },
         "senior_rater": {
             "comments": "I currently senior rate Army Officers in this grade. 1LT X is #4 of the 44 Lieutenants I senior rated. 1LT X is an intelligent and creative Officer with the potential to progress in rank as a leader. 1LT X is ready for positions of increased responsibilities; he will excel as a Staff Officer followed by Company Command if given the opportunity. Select for Military Police Captains Career Course and promote to captain when eligible.",  # noqa: E501
             "next_assignment": ["Battalion FDO", " Battalion AS3", " Battalion S4"],
             "potential": "HIGHLY QUALIFIED",
             "name": "BERTL, ALAN",
-            "position": "BATTALION COMMANDER"
+            "position": "BATTALION COMMANDER",
         },
         "intermediate_rater": {
             "comments": "1LT X is #2 of the 20 Lieutenants I intermediate rated. He is an asset for the future and will progress further in his military career. Keep assigning him to demanding position and select him for the Military Police Captains Career Course now. Promote ahead of peers to Captain and select him for the next Company Command.",  # noqa: E501
             "name": "WOLFE, CRAG",
-            "position": ""
+            "position": "",
         },
         "rated_name": "ROBINSON, MATTHEW W",
-        "rated_position": ""
+        "rated_position": "",
     }
 
 

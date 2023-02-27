@@ -369,6 +369,7 @@ async def pipeline_1(
 
             def response_generator():
                 for file in files:
+
                     _file = file.file
 
                     response = pipeline_api(
@@ -384,6 +385,7 @@ async def pipeline_1(
                 response_generator(),
             )
         else:
+
             file = files[0]
             _file = file.file
 

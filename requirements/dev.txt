@@ -60,7 +60,7 @@ fastcore==1.5.28
     #   execnb
     #   ghapi
     #   nbdev
-fastjsonschema==2.16.2
+fastjsonschema==2.16.3
     # via nbformat
 flake8==6.0.0
     # via -r requirements/dev.in
@@ -76,7 +76,7 @@ importlib-metadata==6.0.0
     # via
     #   jupyter-client
     #   nbconvert
-importlib-resources==5.10.2
+importlib-resources==5.12.0
     # via jsonschema
 ipykernel==6.21.2
     # via
@@ -127,7 +127,7 @@ jupyter-client==8.0.3
     #   nbclient
     #   notebook
     #   qtconsole
-jupyter-console==6.5.1
+jupyter-console==6.6.2
     # via jupyter
 jupyter-core==5.2.0
     # via
@@ -172,7 +172,7 @@ mypy-extensions==1.0.0
     # via
     #   black
     #   mypy
-nbclassic==0.5.1
+nbclassic==0.5.2
     # via notebook
 nbclient==0.7.2
     # via nbconvert
@@ -233,7 +233,7 @@ prometheus-client==0.16.0
     #   jupyter-server
     #   nbclassic
     #   notebook
-prompt-toolkit==3.0.36
+prompt-toolkit==3.0.37
     # via
     #   ipython
     #   jupyter-console
@@ -265,7 +265,7 @@ python-dateutil==2.8.2
     # via
     #   arrow
     #   jupyter-client
-python-json-logger==2.0.6
+python-json-logger==2.0.7
     # via jupyter-events
 pyyaml==6.0
     # via
@@ -356,7 +356,7 @@ typing-extensions==4.5.0
     #   mypy
 uri-template==1.2.0
     # via jsonschema
-watchdog==2.2.1
+watchdog==2.3.0
     # via nbdev
 wcwidth==0.2.6
     # via prompt-toolkit
@@ -374,7 +374,7 @@ wheel==0.38.4
     #   pip-tools
 widgetsnbextension==4.0.5
     # via ipywidgets
-zipp==3.13.0
+zipp==3.15.0
     # via
     #   importlib-metadata
     #   importlib-resources

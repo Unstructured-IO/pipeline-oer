@@ -198,7 +198,7 @@ def structure_oer(pages):
         "position": flat_elements["intermediate_position"],
         "comments": flat_elements["intermediate_rater_comments"],
     }
-    structured_oer["rated"] = flat_elements["rated"]
+    structured_oer["rated_name"] = flat_elements["rated"]
     structured_oer["rated_position"] = flat_elements["rated_position"]
     structured_oer["rater"]["sections"] = {
         section: flat_elements[section] for section in DESCRIPTIONS

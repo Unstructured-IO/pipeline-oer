@@ -72,6 +72,8 @@ def get_textblock(name, loc):
 
 
 def get_fixed_layout(loc_d):
+    """Creates a layoutparser Layout object from a dict specifying the names and locations of
+    selected text elements."""
     blocks = [get_textblock(name, loc) for name, loc in loc_d.items()]
     fixed_layout = Layout(blocks)
     return fixed_layout
@@ -83,6 +85,8 @@ def get_layout(
     model=None,
     fixed_layouts=None,
 ):
+    """Retrieves the partitioned text elements of the given PDF file, returning the result
+    as a list of layoutparser Layout objects, one for each page of the PDF."""
     layout = (
         process_file_with_model(filename, model, fixed_layouts=fixed_layouts)
         if file is None

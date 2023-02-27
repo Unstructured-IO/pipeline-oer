@@ -5,7 +5,6 @@ import json
 from fastapi.testclient import TestClient
 
 from prepline_oer.api.raters import app, structure_oer
-import prepline_oer.api.raters as raters
 from unstructured_api_tools.pipelines.api_conventions import get_pipeline_path
 
 DIRECTORY = Path(__file__).absolute().parent

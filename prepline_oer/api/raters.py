@@ -102,9 +102,7 @@ def partition_oer(layout: DocumentLayout):
     return {"pages": pages}
 
 
-BLOCK_TITLE_PATTTERN = (
-    r"c. (SIGNIFICANT DUTIES AND RESPONSIBILITIES|COMMENTS ON POTENTIAL):?"
-)
+BLOCK_TITLE_PATTTERN = r"c. (SIGNIFICANT DUTIES AND RESPONSIBILITIES|COMMENTS ON POTENTIAL):?"
 
 NAME_OCR_WHITESPACE = r"\.?_*[\n\r\s]*"
 
@@ -192,8 +190,7 @@ def structure_oer(pages):
         "position": flat_elements["senior_position"],
         "comments": flat_elements["senior_rater_comments"],
         "next_assignment": [
-            clean_extra_whitespace(text)
-            for text in flat_elements["next_assignments"].split(";")
+            clean_extra_whitespace(text) for text in flat_elements["next_assignments"].split(";")
         ],
     }
 
@@ -373,7 +370,6 @@ async def pipeline_1(
 
             def response_generator():
                 for file in files:
-
                     _file = file.file
 
                     response = pipeline_api(
@@ -389,7 +385,6 @@ async def pipeline_1(
                 response_generator(),
             )
         else:
-
             file = files[0]
             _file = file.file
 

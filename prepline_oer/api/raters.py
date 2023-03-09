@@ -389,7 +389,7 @@ async def pipeline_1(
                 response_generator(),
             )
         else:
-            
+
             file = files[0]
             _file = file.file
 

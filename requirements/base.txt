@@ -58,7 +58,7 @@ effdet==0.3.0
     # via layoutparser
 et-xmlfile==1.1.0
     # via openpyxl
-fastapi==0.93.0
+fastapi==0.94.0
     # via
     #   unstructured-api-tools
     #   unstructured-inference
@@ -111,8 +111,6 @@ jinja2==3.1.2
     #   unstructured-api-tools
 joblib==1.2.0
     # via nltk
-jsons==1.6.3
-    # via unstructured-inference
 jsonschema==4.17.3
     # via nbformat
 jupyter-client==8.0.3
@@ -186,7 +184,7 @@ opencv-python==4.6.0.66
     # via
     #   layoutparser
     #   unstructured-inference
-openpyxl==3.1.1
+openpyxl==3.1.2
     # via unstructured
 packaging==22.0
     # via
@@ -223,7 +221,7 @@ pillow==9.4.0
     #   unstructured
 pkgutil-resolve-name==1.3.10
     # via jsonschema
-platformdirs==3.1.0
+platformdirs==3.1.1
     # via jupyter-core
 portalocker==2.7.0
     # via iopath
@@ -274,7 +272,7 @@ pyyaml==6.0
     #   timm
     #   transformers
     #   uvicorn
-pyzmq==25.0.0
+pyzmq==25.0.1
     # via jupyter-client
 ratelimit==2.2.1
     # via -r requirements/base.in
@@ -308,7 +306,7 @@ sniffio==1.3.0
     #   httpx
 soupsieve==2.4
     # via beautifulsoup4
-starlette==0.25.0
+starlette==0.26.0.post1
     # via fastapi
 sympy==1.11.1
     # via onnxruntime
@@ -366,19 +364,15 @@ typing-extensions==4.5.0
     #   starlette
     #   torch
     #   torchvision
-typish==1.9.3
-    # via jsons
-unstructured[local-inference]==0.5.3
+unstructured==0.5.3
     # via -r requirements/base.in
 unstructured-api-tools==0.4.7
     # via -r requirements/base.in
-unstructured-inference==0.2.7
-    # via
-    #   -r requirements/base.in
-    #   unstructured
-urllib3==1.26.14
+unstructured-inference==0.2.11
+    # via -r requirements/base.in
+urllib3==1.26.15
     # via requests
-uvicorn[standard]==0.20.0
+uvicorn[standard]==0.21.0
     # via
     #   unstructured-api-tools
     #   unstructured-inference
@@ -398,7 +392,7 @@ wrapt==1.14.1
     # via
     #   argilla
     #   deprecated
-xlsxwriter==3.0.8
+xlsxwriter==3.0.9
     # via python-pptx
 zipp==3.15.0
     # via

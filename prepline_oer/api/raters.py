@@ -6,9 +6,6 @@
 import os
 from typing import List, Union
 from fastapi import status, FastAPI, File, Form, Request, UploadFile, APIRouter
-from slowapi.errors import RateLimitExceeded
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
 from fastapi.responses import PlainTextResponse
 import json
 from fastapi.responses import StreamingResponse
@@ -28,13 +25,8 @@ from unstructured.cleaners.core import clean_postfix, replace_unicode_quotes
 from collections import defaultdict
 
 
-limiter = Limiter(key_func=get_remote_address)
 app = FastAPI()
-app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 router = APIRouter()
-
-RATE_LIMIT = os.environ.get("PIPELINE_API_RATE_LIMIT", "1/second")
 
 
 # pipeline-api
@@ -353,7 +345,6 @@ class MultipartMixedResponse(StreamingResponse):
 
 
 @router.post("/oer/v0.0.1/raters")
-@limiter.limit(RATE_LIMIT)
 async def pipeline_1(
     request: Request,
     files: Union[List[UploadFile], None] = File(default=None),
@@ -362,7 +353,11 @@ async def pipeline_1(
 
     if isinstance(files, list) and len(files):
         if len(files) > 1:
-            if content_type and content_type not in ["*/*", "multipart/mixed"]:
+            if content_type and content_type not in [
+                "*/*",
+                "multipart/mixed",
+                "application/json",
+            ]:
                 return PlainTextResponse(
                     content=(
                         f"Conflict in media type {content_type}"
@@ -371,9 +366,8 @@ async def pipeline_1(
                     status_code=status.HTTP_406_NOT_ACCEPTABLE,
                 )
 
-            def response_generator():
+            def response_generator(is_multipart):
                 for file in files:
-
                     _file = file.file
 
                     response = pipeline_api(
@@ -381,15 +375,18 @@ async def pipeline_1(
                         filename=file.filename,
                         file_content_type=file.content_type,
                     )
-                    if type(response) not in [str, bytes]:
-                        response = json.dumps(response)
+                    if is_multipart:
+                        if type(response) not in [str, bytes]:
+                            response = json.dumps(response)
                     yield response
 
-            return MultipartMixedResponse(
-                response_generator(),
-            )
+            if content_type == "multipart/mixed":
+                return MultipartMixedResponse(
+                    response_generator(is_multipart=True),
+                )
+            else:
+                return response_generator(is_multipart=False)
         else:
-
             file = files[0]
             _file = file.file
 

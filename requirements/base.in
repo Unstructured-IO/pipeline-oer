@@ -1,6 +1,6 @@
 unstructured[local-inference]>=0.4.4
 unstructured-inference>0.2.8
-unstructured_api_tools==0.4.7
+unstructured_api_tools
 
 ratelimit
 requests

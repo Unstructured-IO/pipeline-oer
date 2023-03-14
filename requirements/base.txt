@@ -51,9 +51,7 @@ cycler==0.11.0
 defusedxml==0.7.1
     # via nbconvert
 deprecated==1.2.13
-    # via
-    #   argilla
-    #   limits
+    # via argilla
 effdet==0.3.0
     # via layoutparser
 et-xmlfile==1.1.0
@@ -128,8 +126,6 @@ kiwisolver==1.4.4
     # via matplotlib
 layoutparser[layoutmodels,tesseract]==0.3.4
     # via unstructured-inference
-limits==2.8.0
-    # via slowapi
 lxml==4.9.2
     # via
     #   python-docx
@@ -186,11 +182,10 @@ opencv-python==4.6.0.66
     #   unstructured-inference
 openpyxl==3.1.2
     # via unstructured
-packaging==22.0
+packaging==23.0
     # via
     #   argilla
     #   huggingface-hub
-    #   limits
     #   matplotlib
     #   nbconvert
     #   onnxruntime
@@ -299,8 +294,6 @@ six==1.16.0
     # via
     #   bleach
     #   python-dateutil
-slowapi==0.1.7
-    # via unstructured-api-tools
 sniffio==1.3.0
     # via
     #   anyio
@@ -359,7 +352,6 @@ typing-extensions==4.5.0
     # via
     #   huggingface-hub
     #   iopath
-    #   limits
     #   mypy
     #   pydantic
     #   rich
@@ -368,7 +360,7 @@ typing-extensions==4.5.0
     #   torchvision
 unstructured[local-inference]==0.5.4
     # via -r requirements/base.in
-unstructured-api-tools==0.4.7
+unstructured-api-tools==0.5.0
     # via -r requirements/base.in
 unstructured-inference==0.2.11
     # via
@@ -402,6 +394,3 @@ zipp==3.15.0
     # via
     #   importlib-metadata
     #   importlib-resources
-
-# The following packages are considered to be unsafe in a requirements file:
-# setuptools

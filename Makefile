@@ -18,7 +18,7 @@ install-base: install-base-pip-packages
 
 ## install:                     installs all test and dev requirements
 .PHONY: install
-install: install-base install-test install-dev install-detectron2
+install: install-base install-detectron2 install-test install-dev
 
 .PHONY: install-base-pip-packages
 install-base-pip-packages:

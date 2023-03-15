@@ -340,7 +340,7 @@ traitlets==5.9.0
     #   nbclient
     #   nbconvert
     #   nbformat
-transformers==4.26.1
+transformers==4.27.0
     # via unstructured-inference
 types-requests==2.28.11.15
     # via unstructured-api-tools

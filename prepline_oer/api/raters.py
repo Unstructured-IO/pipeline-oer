@@ -6,9 +6,6 @@
 import os
 from typing import List, Union
 from fastapi import status, FastAPI, File, Form, Request, UploadFile, APIRouter
-from slowapi.errors import RateLimitExceeded
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
 from fastapi.responses import PlainTextResponse
 import json
 from fastapi.responses import StreamingResponse
@@ -21,32 +18,71 @@ from unstructured_inference.inference.layout import (
     process_file_with_model,
     DocumentLayout,
 )
+from layoutparser import TextBlock, Rectangle, Layout
 import re
 from unstructured.cleaners.core import clean_prefix, clean_extra_whitespace
-from unstructured.cleaners.core import clean_postfix
-from unstructured_inference.inference.layout import TextBlock, PageLayout
-from layoutparser import Rectangle
-from unstructured.cleaners.extract import extract_text_after, extract_text_before
-from unstructured.cleaners.core import replace_unicode_quotes
+from unstructured.cleaners.core import clean_postfix, replace_unicode_quotes
+from collections import defaultdict
 
 
-limiter = Limiter(key_func=get_remote_address)
 app = FastAPI()
-app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 router = APIRouter()
-
-RATE_LIMIT = os.environ.get("PIPELINE_API_RATE_LIMIT", "1/second")
 
 
 # pipeline-api
 
+field_locs = [
+    {
+        "rated": [20.0, 76.0, 253.0, 100.0],
+        "rated_position": [20.0, 453.0, 305.0, 473.0],
+        "rater": [20.0, 169.0, 302.0, 193.0],
+        "rater_position": [459.0, 169.0, 591.0, 193.0],
+        "intermediate": [20.0, 219.0, 302.0, 243.0],
+        "intermediate_position": [459.0, 219.0, 591.0, 243.0],
+        "senior": [20.0, 269.0, 253.0, 293.0],
+        "senior_position": [459.0, 269.0, 591.0, 293.0],
+        "duty_description": [20.0, 475.0, 592.0, 565.0],
+        "rater_comments": [20.0, 704.0, 592.0, 753.0],
+    },
+    {
+        "character": [165.0, 56.0, 592.0, 107.0],
+        "presence": [165.0, 108.0, 592.0, 159.0],
+        "intellect": [165.0, 160.0, 592.0, 211.0],
+        "leads": [165.0, 212.0, 592.0, 263.0],
+        "develops": [165.0, 264.0, 592.0, 315.0],
+        "achieves": [165.0, 316.0, 592.0, 367.0],
+        "intermediate_rater_comments": [20.0, 379.0, 592.0, 513.0],
+        "senior_rater_comments": [175.0, 543.0, 592.0, 700.0],
+        "next_assignments": [175.0, 701.0, 592.0, 753.0],
+    },
+]
 
-def get_layout(filename="", file=None, model=None):
+
+def get_textblock(name, loc):
+    block = TextBlock(Rectangle(*loc), type=name)
+    return block
+
+
+def get_fixed_layout(loc_d):
+    """Creates a layoutparser Layout object from a dict specifying the names and locations of
+    selected text elements."""
+    blocks = [get_textblock(name, loc) for name, loc in loc_d.items()]
+    fixed_layout = Layout(blocks)
+    return fixed_layout
+
+
+def get_layout(
+    filename="",
+    file=None,
+    model=None,
+    fixed_layouts=None,
+):
+    """Retrieves the partitioned text elements of the given PDF file, returning the result
+    as a list of layoutparser Layout objects, one for each page of the PDF."""
     layout = (
-        process_file_with_model(filename, model)
+        process_file_with_model(filename, model, fixed_layouts=fixed_layouts)
         if file is None
-        else process_data_with_model(file, model)
+        else process_data_with_model(file, model, fixed_layouts=fixed_layouts)
     )
     return layout
 
@@ -65,146 +101,58 @@ BLOCK_TITLE_PATTTERN = (
 NAME_OCR_WHITESPACE = r"\.?_*[\n\r\s]*"
 
 
-rated_loc = [
-    0.04084967320261438,
-    0.10227272727272728,
-    0.40522875816993464,
-    0.11994949494949494,
-]
-rated_position_loc = [
-    0.04084967320261438,
-    0.5782828282828283,
-    0.49019607843137253,
-    0.5909090909090909,
-]
-rater_loc = [
-    0.04084967320261438,
-    0.2196969696969697,
-    0.4852941176470588,
-    0.23737373737373738,
-]
-rater_position_loc = [
-    0.7581699346405228,
-    0.2196969696969697,
-    0.9575163398692811,
-    0.23737373737373738,
-]
-intermediate_loc = [
-    0.04084967320261438,
-    0.2828282828282828,
-    0.4852941176470588,
-    0.3005050505050505,
-]
-intermediate_position_loc = [
-    0.7581699346405228,
-    0.2828282828282828,
-    0.9575163398692811,
-    0.3005050505050505,
-]
-senior_loc = [
-    0.04084967320261438,
-    0.34595959595959597,
-    0.40522875816993464,
-    0.36363636363636365,
-]
-senior_position_loc = [
-    0.7581699346405228,
-    0.34595959595959597,
-    0.9575163398692811,
-    0.36363636363636365,
-]
+PROMPTS = {
+    "rater": r"a1\. NAME OF RATER \(Last, First, Middle Initial\)",
+    "rater_position": r"a4\. POSITION",
+    "intermediate": r"b1\. NAME OF INTERMEDIATE RATER \(Last, First, Middle Initial\)",
+    "intermediate_position": r"b4\. POSITION",
+    "senior": r"c1\. NAME OF SENIOR RATER \(Last, First, Middle Initial\)",
+    "senior_position": r"c4\. POSITION",
+    "rated_position": r"a\. PRINCIPAL DUTY TITLE",
+    "duty_description": r"c\. SIGNIFICANT DUTIES AND RESPONSIBILITIES",
+    "rater_comments": r"Comments:",
+    "senior_rater_comments": r"c\. COMMENTS ON POTENTIAL:",
+    "next_assignments": [
+        r"d\. List 3 future SUCCESSIVE assignments for which this Officer is best suited:",
+        r"\. List 3 future SUCCESSIVE assignments for which this Officer is best suited:",
+        r"d\. List 3 future SUCCESSIVE assignments for which this Officer is bestsuited:",
+        r"\. List 3 future SUCCESSIVE assignments for which this Officer is bestsuited:",
+    ],
+}
 
-
-def get_field_by_ocr(page: PageLayout, loc: list):
-    height = page.image.height
-    width = page.image.width
-    multiplier = [width, height, width, height]
-    coords = [rel_coord * mult for rel_coord, mult in zip(loc, multiplier)]
-    rect = Rectangle(*coords)
-    text_block = TextBlock(rect)
-    field_contents = page.ocr(text_block)
-    field_contents = clean_postfix(field_contents, NAME_OCR_WHITESPACE)
-    return field_contents
-
-
-def get_names_and_positions(page: PageLayout):
-    loc_dict = {
-        "rated_name": rated_loc,
-        "rated_position": rated_position_loc,
-        "rater_name": rater_loc,
-        "rater_position": rater_position_loc,
-        "intermediate_name": intermediate_loc,
-        "intermediate_position": intermediate_position_loc,
-        "senior_name": senior_loc,
-        "senior_position": senior_position_loc,
-    }
-    name_dict = {name: get_field_by_ocr(page, loc) for name, loc in loc_dict.items()}
-    return name_dict
-
-
-SENIOR_RATER_PREFIX = (
-    r"PART VI - SENIOR RATER POTENTIAL COMPARED WITH OFFICERS SENIOR RATED IN SAME GRADE "
-    r"\(OVERPRINTED BY DA\) MOST QUALIFIED "
-    r"\(limited to 49%\) HIGHLY QUALIFIED QUALIFIED NOT QUALIFIED b. "
-)
-
-NEXT_ASSIGNMENT_PREFIX = (
-    "d. List 3 future SUCCESSIVE assignments for which this Officer is best suited: "
-)
-
-
-def get_senior_rater_comments(pages):
-    for element in pages[1]["elements"]:
-        if re.search(SENIOR_RATER_PREFIX, element["text"]):
-            raw_comments = clean_prefix(element["text"], SENIOR_RATER_PREFIX)
-
-            sr_rater_comments = extract_text_before(
-                raw_comments, NEXT_ASSIGNMENT_PREFIX
-            )
-            sr_rater_comments = clean_postfix(sr_rater_comments, BLOCK_TITLE_PATTTERN)
-
-            next_assigments = extract_text_after(raw_comments, NEXT_ASSIGNMENT_PREFIX)
-
-            return {
-                "comments": sr_rater_comments,
-                "next_assignment": next_assigments.split(";"),
-            }
-
-    return dict()
-
+PROMPTS = defaultdict(str, **PROMPTS)
 
 DESCRIPTIONS = {
-    "character": "Adherence to Army Values, Empathy, and Warrior Ethos/Service Ethos"
-    " and Discipline. Fully supports SHARP, EO, and EEO.",
+    "character": (
+        "Adherence to Army Values, Empathy, and Warrior Ethos/Service Ethos and Discipline. "
+        "Fully supports SHARP, EO, and EEO."
+    ),
     "presence": "Military and Professional Bearing, Fitness, Confident, Resilient",
     "intellect": "Mental Agility, Sound Judgment, Innovation, Interpersonal Tact, Expertise",
-    "leads": "Leads Others, Builds Trust, Extends Influence beyond the Chain of"
-    " Command, Leads by Example, Communicates",
-    "develops": "Creates a positive command/workplace environment/Fosters Esprit de"
-    " Corps, Prepares Self, Develops Others, Stewards the Profession",
+    "leads": (
+        "Leads Others, Builds Trust, Extends Influence beyond the Chain of Command, Leads "
+        "by Example, Communicates"
+    ),
+    "develops": (
+        "Creates a positive command/workplace environment/Fosters Esprit de Corps, Prepares "
+        "Self, Develops Others, Stewards the Profession"
+    ),
     "achieves": "Gets Results",
 }
 
-SECTION_PATTERN = r"c. [1-6]\) ({0}) :".format("|".join(list(DESCRIPTIONS.keys())))
 
-DESCRIPTION_PATTERN = r"\(({0})\)".format("|".join(list(DESCRIPTIONS.values())))
-
-
-def get_rater_sections(pages):
-    """Extracts the Character, Presence, Intellect, Leads, Develops, and Achieves blocks
-    from the rater comments and converts them to a dictionary."""
-    rater_sections = dict()
-    for element in pages[1]["elements"]:
-        if re.search(SECTION_PATTERN, element["text"], flags=re.IGNORECASE):
-            section_split = re.split(
-                SECTION_PATTERN, element["text"], flags=re.IGNORECASE
-            )
-            for chunk in section_split:
-                for key, description in DESCRIPTIONS.items():
-                    if description in chunk:
-                        comments = clean_postfix(chunk.strip(), DESCRIPTION_PATTERN)
-                        rater_sections[key] = replace_unicode_quotes(comments)
-    return rater_sections
+def clean_all_prompts(typ, text):
+    if isinstance(PROMPTS[typ], str):
+        prompts = [PROMPTS[typ]]
+    else:
+        prompts = PROMPTS[typ]
+    cleaned_text = text
+    for prompt in prompts:
+        cleaned_text = clean_prefix(cleaned_text, prompt)
+        cleaned_text = clean_postfix(cleaned_text, prompt)
+    cleaned_text = clean_extra_whitespace(cleaned_text)
+    cleaned_text = replace_unicode_quotes(cleaned_text)
+    return cleaned_text
 
 
 def structure_oer(pages):
@@ -218,29 +166,39 @@ def structure_oer(pages):
 
     structured_oer = dict()
 
-    first_page = [
-        element for element in pages[0]["elements"] if element["type"] == "Text"
-    ]
-    if len(first_page) < 2:
-        raise ValueError(
-            f"Number of narrative text elements on the "
-            f"first page is {len(first_page)}. "
-            "Expected at least two."
-        )
-
-    duty_description = first_page[0]["text"]
-    duty_description = clean_prefix(duty_description, BLOCK_TITLE_PATTTERN)
-    structured_oer["duty_description"] = clean_extra_whitespace(duty_description)
-    structured_oer["rater"] = {
-        "comments": first_page[-1]["text"],
-        "sections": get_rater_sections(pages),
+    flat_elements = {
+        el["type"]: clean_all_prompts(el["type"], el["text"])
+        for page in pages
+        for el in page["elements"]
     }
-    structured_oer["senior_rater"] = get_senior_rater_comments(pages)
 
-    second_page = [
-        element for element in pages[1]["elements"] if element["type"] == "Text"
-    ]
-    structured_oer["intermediate_rater"] = {"comments": second_page[-2]["text"]}
+    structured_oer["duty_description"] = flat_elements["duty_description"]
+    structured_oer["rater"] = {
+        "name": flat_elements["rater"],
+        "position": flat_elements["rater_position"],
+        "comments": flat_elements["rater_comments"],
+        "sections": {k: v for k, v in flat_elements.items() if k in DESCRIPTIONS},
+    }
+    structured_oer["senior_rater"] = {
+        "name": flat_elements["senior"],
+        "position": flat_elements["senior_position"],
+        "comments": flat_elements["senior_rater_comments"],
+        "next_assignment": [
+            clean_extra_whitespace(text)
+            for text in flat_elements["next_assignments"].split(";")
+        ],
+    }
+
+    structured_oer["intermediate_rater"] = {
+        "name": flat_elements["intermediate"],
+        "position": flat_elements["intermediate_position"],
+        "comments": flat_elements["intermediate_rater_comments"],
+    }
+    structured_oer["rated_name"] = flat_elements["rated"]
+    structured_oer["rated_position"] = flat_elements["rated_position"]
+    structured_oer["rater"]["sections"] = {
+        section: flat_elements[section] for section in DESCRIPTIONS
+    }
 
     return structured_oer
 
@@ -309,11 +267,10 @@ def pipeline_api(
     file_content_type=None,
     filename=None,
 ):
-    layout = get_layout(file=file)
+    fixed_layouts = [get_fixed_layout(loc_d) for loc_d in field_locs]
+    layout = get_layout(filename=filename, fixed_layouts=fixed_layouts)
     pages = partition_oer(layout=layout)["pages"]
     narrative = structure_oer(pages)
-
-    name_position_dict = get_names_and_positions(layout.pages[0])
 
     file.seek(0)
     cb_layout = get_layout(file=file, model="checkbox")
@@ -325,16 +282,6 @@ def pipeline_api(
             narrative["rater"][key] = checkbox[key]
     if "senior_rater" in narrative and "potential" in checkbox:
         narrative["senior_rater"]["potential"] = checkbox["potential"]
-    narrative["rated_name"] = name_position_dict["rated_name"]
-    narrative["rated_position"] = name_position_dict["rated_position"]
-    narrative["rater"]["name"] = name_position_dict["rater_name"]
-    narrative["rater"]["position"] = name_position_dict["rater_position"]
-    narrative["intermediate_rater"]["name"] = name_position_dict["intermediate_name"]
-    narrative["intermediate_rater"]["position"] = name_position_dict[
-        "intermediate_position"
-    ]
-    narrative["senior_rater"]["name"] = name_position_dict["senior_name"]
-    narrative["senior_rater"]["position"] = name_position_dict["senior_position"]
 
     return narrative
 
@@ -398,7 +345,6 @@ class MultipartMixedResponse(StreamingResponse):
 
 
 @router.post("/oer/v0.0.1/raters")
-@limiter.limit(RATE_LIMIT)
 async def pipeline_1(
     request: Request,
     files: Union[List[UploadFile], None] = File(default=None),
@@ -407,7 +353,11 @@ async def pipeline_1(
 
     if isinstance(files, list) and len(files):
         if len(files) > 1:
-            if content_type and content_type not in ["*/*", "multipart/mixed"]:
+            if content_type and content_type not in [
+                "*/*",
+                "multipart/mixed",
+                "application/json",
+            ]:
                 return PlainTextResponse(
                     content=(
                         f"Conflict in media type {content_type}"
@@ -416,9 +366,8 @@ async def pipeline_1(
                     status_code=status.HTTP_406_NOT_ACCEPTABLE,
                 )
 
-            def response_generator():
+            def response_generator(is_multipart):
                 for file in files:
-
                     _file = file.file
 
                     response = pipeline_api(
@@ -426,15 +375,18 @@ async def pipeline_1(
                         filename=file.filename,
                         file_content_type=file.content_type,
                     )
-                    if type(response) not in [str, bytes]:
-                        response = json.dumps(response)
+                    if is_multipart:
+                        if type(response) not in [str, bytes]:
+                            response = json.dumps(response)
                     yield response
 
-            return MultipartMixedResponse(
-                response_generator(),
-            )
+            if content_type == "multipart/mixed":
+                return MultipartMixedResponse(
+                    response_generator(is_multipart=True),
+                )
+            else:
+                return response_generator(is_multipart=False)
         else:
-
             file = files[0]
             _file = file.file
 

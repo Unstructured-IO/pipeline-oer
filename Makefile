@@ -76,7 +76,7 @@ run-jupyter:
 ## run-web-app:                 runs the FastAPI api with hot reloading
 .PHONY: run-web-app
 run-web-app:
-	 PYTHONPATH=$(realpath .) uvicorn ${PACKAGE_NAME}.api.raters:app --reload
+	 PYTHONPATH=$(realpath .) uvicorn ${PACKAGE_NAME}.api.raters:app --log-config logger_config.yaml --reload
 
 #################
 # Test and Lint #

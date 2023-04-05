@@ -65,7 +65,6 @@ def test_structure_oer_with_invalid_pages(invalid_pages, exception_message):
 
 def test_section_narrative_api(fake_structured_oer):
     filename = os.path.join(SAMPLE_DOCS_DIRECTORY, "fake-oer.pdf")
-    app.state.limiter.reset()
     client = TestClient(app)
     response = client.post(
         COMMENTS_ROUTE,
@@ -82,7 +81,6 @@ def test_section_narrative_api(fake_structured_oer):
 
 
 def test_section_narrative_api_with_no_file():
-    app.state.limiter.reset()
     client = TestClient(app)
     response = client.post(
         COMMENTS_ROUTE,
@@ -93,7 +91,6 @@ def test_section_narrative_api_with_no_file():
 
 def test_section_narrative_api_with_conflict_in_media_type():
     filename = os.path.join(SAMPLE_DOCS_DIRECTORY, "fake-oer.pdf")
-    app.state.limiter.reset()
     client = TestClient(app)
     response = client.post(
         COMMENTS_ROUTE,
@@ -109,7 +106,6 @@ def test_section_narrative_api_with_conflict_in_media_type():
 
 def test_section_narrative_api_with_multiple_files():
     filename = os.path.join(SAMPLE_DOCS_DIRECTORY, "fake-oer.pdf")
-    app.state.limiter.reset()
     client = TestClient(app)
     response = client.post(
         COMMENTS_ROUTE,

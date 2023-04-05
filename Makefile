@@ -18,7 +18,7 @@ install-base: install-base-pip-packages
 
 ## install:                     installs all test and dev requirements
 .PHONY: install
-install: install-base install-test install-dev install-detectron2
+install: install-base install-detectron2 install-test install-dev
 
 .PHONY: install-base-pip-packages
 install-base-pip-packages:
@@ -38,7 +38,7 @@ install-ci: install-base install-test install-detectron2
 
 .PHONY: install-detectron2
 install-detectron2:
-	pip install "detectron2@git+https://github.com/facebookresearch/detectron2.git@v0.6#egg=detectron2"
+	pip install "detectron2@git+https://github.com/facebookresearch/detectron2.git@e2ce8dc#egg=detectron2"
 
 ## pip-compile:                 compiles all base/dev/test requirements
 .PHONY: pip-compile

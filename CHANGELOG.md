@@ -1,5 +1,6 @@
-## 0.0.1-dev3
+## 0.0.1-dev4
 
+* Updated version of detectron2
 * Switches to new method of discovery
 * Adds rater and rated names and positions to extractions
 * Adds checkbox discovery

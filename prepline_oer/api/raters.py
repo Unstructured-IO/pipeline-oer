@@ -94,9 +94,7 @@ def partition_oer(layout: DocumentLayout):
     return {"pages": pages}
 
 
-BLOCK_TITLE_PATTTERN = (
-    r"c. (SIGNIFICANT DUTIES AND RESPONSIBILITIES|COMMENTS ON POTENTIAL):?"
-)
+BLOCK_TITLE_PATTTERN = r"c. (SIGNIFICANT DUTIES AND RESPONSIBILITIES|COMMENTS ON POTENTIAL):?"
 
 NAME_OCR_WHITESPACE = r"\.?_*[\n\r\s]*"
 
@@ -184,8 +182,7 @@ def structure_oer(pages):
         "position": flat_elements["senior_position"],
         "comments": flat_elements["senior_rater_comments"],
         "next_assignment": [
-            clean_extra_whitespace(text)
-            for text in flat_elements["next_assignments"].split(";")
+            clean_extra_whitespace(text) for text in flat_elements["next_assignments"].split(";")
         ],
     }
 
